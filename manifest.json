@@ -1,0 +1,10 @@
+{
+  "name": "Worker Manager",
+  "short_name": "Worker Manager",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#2563eb",
+  "description": "Simple offline worker attendance and payment manager",
+  "icons": []
+}
