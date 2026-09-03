@@ -9,10 +9,10 @@
   function editSalary(id){const d=getData(),w=d.workers.find(x=>x.id===id);if(!w)return;const z=info(),mk=`${z.y}-${String(z.m+1).padStart(2,'0')}`;if(!w.salaryByMonth)w.salaryByMonth={};const v=prompt(`Enter fixed monthly salary for ${mk}:`,w.salaryByMonth[mk]||0);if(v===null)return;const n=Number(String(v).replace(/,/g,''));if(!Number.isFinite(n)||n<0)return alert('Enter a valid salary amount.');w.salaryByMonth[mk]=n;saveData(d)}
   function enhanceWorkers(){const list=document.getElementById('wlist');if(!list)return;list.querySelectorAll('.worker').forEach(card=>{const profile=card.querySelector('button[onclick^="openProfile("]');if(!profile)return;const m=profile.getAttribute('onclick').match(/openProfile\((\d+)\)/);if(!m||card.dataset.enhanced)return;const id=Number(m[1]);card.dataset.enhanced='1';const edit=document.createElement('button');edit.textContent='✏️ Edit';edit.onclick=()=>{const d=getData(),w=d.workers.find(x=>x.id===id);if(!w)return;const name=prompt('Enter new worker name:',w.name);if(name===null)return;const clean=name.trim();if(!clean){alert('Worker name cannot be empty.');return}w.name=clean;saveData(d)};const del=document.createElement('button');del.textContent='🗑️ Delete';del.onclick=()=>{const d=getData(),w=d.workers.find(x=>x.id===id);if(!w)return;if(!confirm(`⚠️ Delete worker "${w.name}"?\n\nThis will permanently delete the worker and their attendance and payment history from this phone.\n\nAre you sure?`))return;d.workers=d.workers.filter(x=>x.id!==id);Object.keys(d.a||{}).forEach(k=>{if(k.startsWith(id+'|'))delete d.a[k]});d.p=(d.p||[]).filter(x=>x.id!==id);saveData(d)};profile.parentNode.insertBefore(edit,profile.nextSibling);profile.parentNode.appendChild(del)})}
   function enhanceProfile(){
-    const box=document.getElementById('pstats'),title=document.getElementById('pname');
-    if(!box||!title||!document.getElementById('profile')?.classList.contains('on'))return;
+    const box=document.getElementById('pstats'),title=document.getElementById('pname'),profile=document.getElementById('profile');
+    if(!box||!title||!profile?.classList.contains('on'))return;
     const d=getData();
-    const w=d.workers.find(x=>x.name===title.textContent);
+    const w=d.workers.find(x=>x.id===window.pid) || d.workers.find(x=>x.name===title.textContent);
     if(!w)return;
     const s=stats(w);
     const key=`${w.id}|${s.z.y}-${s.z.m}|${s.salary}|${w.rate}|${s.present}|${s.absent}|${s.half}|${s.paid}`;
@@ -27,7 +27,6 @@
   let scheduled=false;
   function enhance(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;enhanceWorkers();enhanceProfile()})}
   document.addEventListener('change',enhance);
-  document.addEventListener('click',()=>setTimeout(enhance,30));
-  setInterval(enhance,500);
+  document.addEventListener('click',()=>setTimeout(enhance,50),{passive:true});
   enhance();
 })();
