@@ -209,8 +209,8 @@ function openNewCycle(id){
 function createCycle(id){
  const w=data.workers.find(x=>x.id===id),old=cycleFor(w),date=$('cycleDate').value;if(!w||!old||!date)return;
  if(date<=old.start)return alert('New cycle date must be after the current cycle start.');
- const s=cycleStats(w,old),end=new Date(parseDate(date));end.setDate(end.getDate()-1);
- old.end=iso(end.getFullYear(),end.getMonth(),end.getDate());old.closedAt=todayISO();old.closingBalance=s.balance;
+ const end=new Date(parseDate(date));end.setDate(end.getDate()-1);const endDate=iso(end.getFullYear(),end.getMonth(),end.getDate());const s=cycleStats(w,old,endDate);
+ old.end=endDate;old.closedAt=todayISO();old.closingBalance=s.balance;
  data.cycles.push({id:uid(),workerId:id,start:date,openingBalance:s.balance,createdAt:todayISO()});
  closeModal();save()
 }
