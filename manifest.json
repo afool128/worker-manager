@@ -1,10 +1,11 @@
 {
-  "name": "Worker Manager",
-  "short_name": "Worker Manager",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#f5f7fb",
-  "theme_color": "#2563eb",
-  "description": "Simple offline worker attendance and payment manager",
-  "icons": []
+  "name":"Worker Hisaab Manager",
+  "short_name":"Worker Hisaab",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#f4f6fa",
+  "theme_color":"#172554",
+  "description":"Simple worker attendance, payments and running Hisaab manager",
+  "icons":[]
 }
