@@ -1,1 +1,242 @@
-<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=theme-color content=#2563eb><link rel=manifest href=manifest.json><title>Worker Manager</title><style>body{font-family:system-ui;margin:0;background:#f5f7fb;color:#172033}header{background:#2563eb;color:white;padding:15px;position:sticky;top:0}main{max-width:900px;margin:auto;padding:12px}.nav{display:flex;gap:6px;overflow:auto;margin-bottom:10px}.nav button,button{padding:9px;border:0;border-radius:9px;font-weight:700;background:#e8eefc}.nav .on,button.primary{background:#2563eb;color:white}.page{display:none}.page.on{display:block}.card{background:white;border:1px solid #ddd;border-radius:14px;padding:13px;margin-bottom:10px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stat{padding:10px;background:#f8fafc;border-radius:10px}.small{font-size:12px;color:#667085}input,select{padding:9px;border:1px solid #ccd2dc;border-radius:8px;max-width:100%}.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.grow{flex:1}.table{overflow:auto}table{border-collapse:collapse;width:100%;min-width:500px}th,td{padding:7px;border-bottom:1px solid #eee;text-align:center}th{background:#f8fafc}.left{text-align:left}.att{font-size:18px;background:none;padding:5px}.worker{border:1px solid #ddd;border-radius:11px;padding:11px;margin-top:8px}.modal{display:none;position:fixed;inset:0;background:#0006;align-items:end}.modal.on{display:flex}.box{background:white;padding:15px;border-radius:16px 16px 0 0;width:100%;max-width:500px;margin:auto}@media(max-width:650px){.grid{grid-template-columns:repeat(2,1fr)}} </style></head><body><header><b>👷 Worker Manager</b><div class=small style=color:#dbeafe>Offline attendance & payments</div><div class=row style=margin-top:8px><select id=mo></select><select id=yr></select></div></header><main><nav class=nav><button class=on onclick=page('home',this)>🏠 Home</button><button onclick=page('att',this)>📅 Attendance</button><button onclick=page('workers',this)>👷 Workers</button><button onclick=page('pay',this)>💰 Payments</button><button onclick=page('history',this)>🕘 History</button></nav><section id=home class="page on"><div class=card><h3>Monthly Summary</h3><div id=stats class=grid></div></div><div class=card><h3>Workers</h3><div id=summary></div></div></section><section id=att class=page><div class=card><div class=row><div class=grow><h3 id=attTitle></h3><div class=small>Tap: 🟢 Present → 🔴 Absent → 🟡 Half → ⚫ Clear</div></div><input id=asearch placeholder="Search worker" oninput=renderAtt()></div><div class=table><table id=atable></table></div></div></section><section id=workers class=page><div class=card><div class=row><h3 class=grow>Workers</h3><button class=primary onclick=openAdd()>＋ Add</button></div><div id=wlist></div></div></section><section id=profile class=page><div class=card><div class=row><button onclick=page('workers')>←</button><h3 class=grow id=pname></h3></div><div id=pstats class=grid></div></div><div class=card><h3>Attendance</h3><div id=phistory></div></div><div class=card><h3>Payment History</h3><div id=ppay></div></div></section><section id=pay class=page><div class=card><h3>Add Payment</h3><div class=row><select id=pworker></select><input id=pamt type=number placeholder="Amount ₹"><input id=pdate type=date><input id=pnote placeholder="Note"><button class=primary onclick=addPay()>＋ Add</button></div></div><div class=card><h3 id=paytitle></h3><div id=plist></div></div></section><section id=history class=page><div class=card><div class=row><h3 class=grow>Backup & History</h3><button class=primary onclick=backup()>💾 Backup</button><button onclick=restore()>♻️ Restore</button></div><div id=hlist></div></div><div class=card><div class=small>Data is saved on this phone. Keep an occasional backup because clearing Chrome site data can erase local data.</div></div></section></main><div id=modal class=modal><div class=box><h3>Add Worker</h3><input id=nname placeholder="Worker name" style=width:100%><br><br><input id=nrate type=number placeholder="Daily rate ₹" style=width:100%><br><br><button class=primary onclick=addWorker()>Add</button> <button onclick=closeAdd()>Cancel</button></div></div><script>const S='wm_v3',M=['January','February','March','April','May','June','July','August','September','October','November','December'],D=new Date();let data;try{data=JSON.parse(localStorage.getItem(S))}catch(e){}data=data||{workers:[],a:{},p:[]};let pm=D.getMonth(),py=D.getFullYear(),pid=null;const $=x=>document.getElementById(x),days=()=>new Date(py,pm+1,0).getDate(),key=(id,d)=>id+'|'+py+'-'+String(pm+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),fmt=n=>Number(n||0).toLocaleString('en-IN'),worked=w=>{let n=0;for(let d=1;d<=days();d++){let x=data.a[key(w.id,d)];if(x=='P')n++;if(x=='H')n+=.5}return n},paid=(id)=>data.p.filter(x=>x.id==id&&x.date.startsWith(py+'-'+String(pm+1).padStart(2,'0')+'-')).reduce((s,x)=>s+ +x.amount,0),save=()=>{localStorage.setItem(S,JSON.stringify(data));localStorage.setItem(S+'_backup',JSON.stringify(data));render()},ic=x=>x=='P'?'🟢':x=='A'?'🔴':x=='H'?'🟡':'⚫';function init(){mo.innerHTML=M.map((x,i)=>`<option value=${i}>${x}</option>`).join('');yr.innerHTML=Array.from({length:16},(_,i)=>2020+i).map(x=>`<option>${x}</option>`).join('');mo.value=pm;yr.value=py;mo.onchange=chg;yr.onchange=chg;pdate.value=py+'-'+String(pm+1).padStart(2,'0')+'-'+String(D.getDate()).padStart(2,'0')}function chg(){pm=+mo.value;py=+yr.value;render()}function page(id,b){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));if(b)b.classList.add('on');if(id=='profile')renderProfile()}function render(){init();$('attTitle').textContent=M[pm]+' '+py+' Attendance';$('paytitle').textContent=M[pm]+' '+py+' Payments';renderStats();renderSummary();renderAtt();renderWorkers();renderPays();renderHist();if(pid)renderProfile()}function renderStats(){let w=data.workers.filter(x=>x.active!==false),wd=w.reduce((s,x)=>s+worked(x),0),pt=w.reduce((s,x)=>s+paid(x.id),0),pr=0,h=0;Object.keys(data.a).forEach(k=>{if(k.includes('|'+py+'-'+String(pm+1).padStart(2,'0')+'-')){if(data.a[k]=='P')pr++;if(data.a[k]=='H')h++}});$('stats').innerHTML=`<div class=stat><b>${wd}</b><div class=small>Days worked</div></div><div class=stat><b>${pr}</b><div class=small>Present</div></div><div class=stat><b>${h}</b><div class=small>Half days</div></div><div class=stat><b>₹${fmt(pt)}</b><div class=small>Paid</div></div>`}function renderSummary(){$('summary').innerHTML=data.workers.filter(x=>x.active!==false).map(w=>{let e=worked(w)*+w.rate,p=paid(w.id);return`<div class=worker><b>${w.name}</b><div class=small>Worked: ${worked(w)} • Earned: ₹${fmt(e)} • Paid: ₹${fmt(p)} • Balance: ₹${fmt(e-p)}</div></div>`}).join('')||'<div class=small>No workers yet.</div>'}function renderAtt(){let q=($('asearch').value||'').toLowerCase(),ws=data.workers.filter(w=>w.active!==false&&w.name.toLowerCase().includes(q));let h='<tr><th class=left>Worker</th>';for(let d=1;d<=days();d++)h+=`<th>${d}</th>`;h+='<th>Worked</th></tr>';ws.forEach(w=>{h+=`<tr><td class=left><b>${w.name}</b></td>`;for(let d=1;d<=days();d++){let a=data.a[key(w.id,d)]||'';h+=`<td><button class=att onclick="cycle(${w.id},${d})">${ic(a)}</button></td>`}h+=`<td><b>${worked(w)}</b></td></tr>`});$('atable').innerHTML=h}function cycle(id,d){let k=key(id,d),a=data.a[k]||'';a=a==''?'P':a=='P'?'A':a=='A'?'H':'';if(a)data.a[k]=a;else delete data.a[k];save()}function openAdd(){$('modal').classList.add('on');$('nname').value='';$('nrate').value=''}function closeAdd(){$('modal').classList.remove('on')}function addWorker(){let n=$('nname').value.trim();if(!n)return alert('Enter name');data.workers.push({id:Date.now(),name:n,rate:+$('nrate').value||0,active:true});closeAdd();save()}function renderWorkers(){$('wlist').innerHTML=data.workers.map(w=>`<div class=worker><div class=row><b class=grow>${w.name}</b><button onclick="openProfile(${w.id})">Profile</button><button onclick="toggle(${w.id})">${w.active===false?'Activate':'Deactivate'}</button></div><div class=small>Rate ₹${fmt(w.rate)} • Worked ${worked(w)} • Balance ₹${fmt(worked(w)*w.rate-paid(w.id))}</div></div>`).join('')||'<div class=small>No workers.</div>'}function toggle(id){let w=data.workers.find(x=>x.id==id);w.active=w.active===false;save()}function openProfile(id){pid=id;page('profile')}function renderProfile(){let w=data.workers.find(x=>x.id==pid);if(!w)return;$('pname').textContent=w.name;let e=worked(w)*w.rate,p=paid(w.id);$('pstats').innerHTML=`<div class=stat><b>${worked(w)}</b><div class=small>Worked</div></div><div class=stat><b>₹${fmt(e)}</b><div class=small>Earned</div></div><div class=stat><b>₹${fmt(p)}</b><div class=small>Paid</div></div><div class=stat><b>₹${fmt(e-p)}</b><div class=small>Balance</div></div>`;let s='';for(let d=1;d<=days();d++){let a=data.a[key(w.id,d)]||'';s+=`<span style="display:inline-block;padding:7px">${d}<br>${ic(a)}</span>`}$('phistory').innerHTML=s;$('ppay').innerHTML=data.p.filter(x=>x.id==w.id).sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class=worker>${x.date} — <b>₹${fmt(x.amount)}</b> ${x.note||''}</div>`).join('')||'<div class=small>No payments.</div>'}function renderPays(){pworker.innerHTML=data.workers.filter(w=>w.active!==false).map(w=>`<option value=${w.id}>${w.name}</option>`).join('');let p=data.p.filter(x=>x.date.startsWith(py+'-'+String(pm+1).padStart(2,'0')+'-')).sort((a,b)=>b.date.localeCompare(a.date));plist.innerHTML=p.map(x=>{let w=data.workers.find(y=>y.id==x.id);return`<div class=worker><b>${w?.name||'Worker'}</b> — ${x.date} — ₹${fmt(x.amount)} ${x.note||''} <button onclick="delPay(${x.pid})">Delete</button></div>`}).join('')||'<div class=small>No payments this month.</div>'}function addPay(){let id=+pworker.value,amount=+pamt.value,date=pdate.value;if(!id||!amount||!date)return alert('Enter worker, amount and date');data.p.push({pid:Date.now(),id,amount,date,note:pnote.value.trim()});pamt.value='';pnote.value='';save()}function delPay(id){if(confirm('Delete payment?')){data.p=data.p.filter(x=>x.pid!=id);save()}}function renderHist(){let ms=[...new Set(data.p.map(x=>x.date.slice(0,7)))].sort().reverse();hlist.innerHTML=ms.map(x=>`<div class=worker>📅 ${x} — ${data.p.filter(p=>p.date.startsWith(x)).length} payments</div>`).join('')||'<div class=small>No payment history yet.</div>'}function backup(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='worker-manager-backup.json';a.click()}function restore(){let i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{let r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);save();alert('Restored')}catch(x){alert('Invalid backup')}};r.readAsText(e.target.files[0])};i.click()}if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});render();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#172554">
+<link rel="manifest" href="manifest.json">
+<title>Worker Hisaab Manager</title>
+<style>
+:root{--ink:#172033;--muted:#667085;--line:#e6e9ef;--bg:#f4f6fa;--card:#fff;--blue:#2563eb;--blue2:#172554;--green:#15803d;--red:#dc2626;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit}button{border:0;border-radius:10px;padding:10px 13px;font-weight:750;cursor:pointer;background:#edf1f7;color:var(--ink)}button.primary{background:var(--blue);color:#fff}button.danger{background:#fee2e2;color:#991b1b}button.ghost{background:transparent;border:1px solid var(--line)}button:active{transform:scale(.98)}
+header{background:linear-gradient(135deg,#172554,#2563eb);color:#fff;padding:18px max(14px,calc((100vw - 1180px)/2));position:sticky;top:0;z-index:20;box-shadow:0 3px 18px #17255422}
+.brand{display:flex;align-items:center;gap:10px}.brand-icon{font-size:28px}.brand h1{font-size:19px;margin:0}.brand p{margin:2px 0 0;color:#dbeafe;font-size:12px}
+.top-controls{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap}.top-controls select{background:#fff;color:var(--ink)}
+main{max-width:1180px;margin:auto;padding:14px 14px 80px}.nav{display:flex;gap:7px;overflow:auto;margin-bottom:13px;scrollbar-width:none}.nav button{white-space:nowrap}.nav .on{background:var(--blue2);color:#fff}
+.page{display:none}.page.on{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:13px;box-shadow:0 2px 10px #17255408}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.grow{flex:1}.small{font-size:12px;color:var(--muted)}.muted{color:var(--muted)}h2,h3{margin:0 0 8px}h2{font-size:21px}h3{font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.stat{padding:13px;border-radius:13px;background:#f7f9fc;border:1px solid #edf0f5}.stat b{font-size:19px}.stat .small{margin-top:3px}
+.balance{padding:16px;border-radius:15px;background:#eff6ff;border:1px solid #bfdbfe}.balance.owe{background:#f0fdf4;border-color:#bbf7d0}.balance.reverse{background:#fff7ed;border-color:#fed7aa}.balance .amount{font-size:27px;font-weight:850}.balance .label{font-weight:800;margin-top:2px}
+input,select,textarea{border:1px solid #cfd5df;border-radius:10px;padding:10px;background:#fff;color:var(--ink);min-width:0}input:focus,select:focus,textarea:focus{outline:2px solid #bfdbfe;border-color:#60a5fa}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:720px}th,td{padding:8px;border-bottom:1px solid #edf0f4;text-align:center;white-space:nowrap}th{background:#f8fafc;font-size:12px;color:#667085}td.left,th.left{text-align:left;position:sticky;left:0;background:#fff;z-index:1}.att{font-size:18px;background:transparent;padding:4px 6px}
+.worker{border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:9px;background:#fff}.worker:hover{border-color:#c7d2fe}.worker-name{font-weight:800;font-size:15px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{padding:5px 8px;border-radius:999px;background:#f2f4f7;font-size:12px;font-weight:700}
+.ledger{width:100%;border-collapse:collapse}.ledger td{padding:10px 6px}.ledger .amount{text-align:right;font-weight:800}.plus{color:var(--green)}.minus{color:var(--red)}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed #d7dce5;border-radius:12px}
+.modal{display:none;position:fixed;inset:0;background:#0008;align-items:flex-end;z-index:50}.modal.on{display:flex}.modal-box{background:#fff;width:100%;max-width:560px;margin:auto;border-radius:18px 18px 0 0;padding:18px;max-height:92vh;overflow:auto}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:12px;font-weight:750;margin-bottom:5px}.field.full{grid-column:1/-1}
+.notice{padding:10px 12px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;font-size:12px;color:#92400e}.tabs{display:flex;gap:6px;overflow:auto;margin-bottom:10px}.tabs button.on{background:var(--blue);color:#fff}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.nav{margin-right:-14px;padding-right:14px}.card{border-radius:14px}header{padding:14px}.top-controls{margin-top:10px}main{padding-top:11px}}
+@media(min-width:950px){body{display:flex;min-height:100vh}header{position:fixed;left:0;top:0;bottom:0;width:245px;padding:26px 18px;background:linear-gradient(160deg,#172554,#1d4ed8);z-index:30}.brand{margin-bottom:28px}.top-controls{display:grid}.top-controls select{width:100%}main{margin-left:245px;width:calc(100% - 245px);max-width:1400px;padding:28px 30px 70px}.nav{background:#fff;border:1px solid var(--line);padding:7px;border-radius:14px;box-shadow:0 2px 10px #17255408}.nav button{flex:1}.card{padding:18px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="brand-icon">👷</div><div><h1>Worker Hisaab</h1><p>Attendance • Payments • Accounts</p></div></div>
+  <div class="top-controls"><select id="mo"></select><select id="yr"></select></div>
+</header>
+<main>
+<nav class="nav">
+<button class="on" onclick="page('home',this)">🏠 Home</button>
+<button onclick="page('att',this)">📅 Attendance</button>
+<button onclick="page('workers',this)">👷 Workers</button>
+<button onclick="page('pay',this)">💰 Payments</button>
+<button onclick="page('history',this)">🕘 History</button>
+</nav>
+
+<section id="home" class="page on">
+<div class="card"><div class="section-title"><div><h2>Business overview</h2><div class="small" id="homePeriod"></div></div><button class="primary" onclick="openAdd()">＋ Worker</button></div><div id="stats" class="grid"></div></div>
+<div class="card"><div class="section-title"><h3>Worker accounts</h3><button onclick="page('workers')">View all</button></div><div id="summary"></div></div>
+</section>
+
+<section id="att" class="page">
+<div class="card"><div class="section-title"><div><h2 id="attTitle"></h2><div class="small">Tap to cycle: 🟢 Present → 🔴 Absent → 🟡 Half day → ⚫ Clear</div></div><input id="asearch" placeholder="Search worker" oninput="renderAtt()"></div><div class="table-wrap"><table id="atable"></table></div></div>
+</section>
+
+<section id="workers" class="page">
+<div class="card"><div class="section-title"><div><h2>Workers</h2><div class="small">Open a worker for their full Hisaab.</div></div><button class="primary" onclick="openAdd()">＋ Add worker</button></div><div id="wlist"></div></div>
+</section>
+
+<section id="profile" class="page">
+<div class="card"><div class="row"><button onclick="page('workers')">← Workers</button><div class="grow"><h2 id="pname"></h2><div class="small" id="pmeta"></div></div><button onclick="editWorker(pid)">✏️ Edit</button><button class="danger" onclick="deleteWorker(pid)">Delete</button></div></div>
+<div class="card" id="accountCard"></div>
+<div class="card"><div class="tabs"><button id="tabOverview" class="on" onclick="profileTab('overview')">Overview</button><button id="tabAttendance" onclick="profileTab('attendance')">Attendance</button><button id="tabPayments" onclick="profileTab('payments')">Payments</button><button id="tabCycles" onclick="profileTab('cycles')">Account cycles</button></div><div id="profileContent"></div></div>
+</section>
+
+<section id="pay" class="page">
+<div class="card"><div class="section-title"><div><h2>Payments</h2><div class="small">Record every amount you give, with a clear reason.</div></div><button class="primary" onclick="openPayment()">＋ Give money</button></div><div id="payMonthSummary"></div></div>
+<div class="card"><h3 id="paytitle"></h3><div id="plist"></div></div>
+</section>
+
+<section id="history" class="page">
+<div class="card"><div class="section-title"><div><h2>Backup & history</h2><div class="small">Keep a backup before changing phones or clearing browser data.</div></div><div class="row"><button class="primary" onclick="backup()">💾 Backup</button><button onclick="restore()">♻️ Restore</button></div></div><div id="hlist"></div></div>
+<div class="card"><h3>Safety</h3><div class="notice">This app stores data in this browser. GitHub Pages does not store your worker records. Back up regularly.</div><div class="row" style="margin-top:10px"><button onclick="exportCSV()">Export payment CSV</button><button onclick="resetLocalBackup()">Create safety copy</button></div></div>
+</section>
+</main>
+
+<div id="modal" class="modal"><div class="modal-box" id="modalBox"></div></div>
+
+<script>
+const STORE='wm_hisaab_v1',OLD='wm_v3',M=['January','February','March','April','May','June','July','August','September','October','November','December'],D=new Date();
+let data=null,pm=D.getMonth(),py=D.getFullYear(),pid=null,ptab='overview';
+
+function $(id){return document.getElementById(id)}
+function money(n){return Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2})}
+function iso(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+function parseDate(s){return new Date(String(s)+'T00:00:00')}
+function daysIn(y,m){return new Date(y,m+1,0).getDate()}
+function todayISO(){return iso(D.getFullYear(),D.getMonth(),D.getDate())}
+function uid(){return Date.now()+Math.floor(Math.random()*1000)}
+function load(){
+ try{data=JSON.parse(localStorage.getItem(STORE)||'null')}catch(e){}
+ if(!data){
+   try{const old=JSON.parse(localStorage.getItem(OLD)||'null');data=migrate(old)}catch(e){}
+ }
+ data=data||{version:1,workers:[],attendance:{},payments:[],cycles:[]};
+ data.attendance=data.attendance||data.a||{};data.payments=data.payments||data.p||[];data.cycles=data.cycles||[];
+ data.workers=(data.workers||[]).map(w=>({...w,active:w.active!==false,rate:Number(w.rate||0),dailyRate:Number(w.dailyRate??w.rate??0)}));
+ data.workers.forEach(ensureCycle);
+ save(false);
+}
+function migrate(old){
+ if(!old)return null;
+ const d={version:1,workers:[],attendance:old.a||{},payments:(old.p||[]).map(x=>({pid:x.pid||uid(),id:x.id,amount:Number(x.amount||0),date:x.date,note:x.note||'Money given'})),cycles:[]};
+ d.workers=(old.workers||[]).map(w=>({id:w.id,name:w.name,rate:Number(w.rate||0),dailyRate:Number(w.rate||0),active:w.active!==false,createdAt:todayISO()}));
+ d.workers.forEach(w=>ensureCycle(w,d));
+ return d;
+}
+function ensureCycle(w,d=data){
+ if((d.cycles||[]).some(c=>c.workerId===w.id&&!c.closedAt))return;
+ const dates=[];
+ Object.keys(d.attendance||{}).forEach(k=>{if(k.startsWith(w.id+'|'))dates.push(k.slice(3))});
+ (d.payments||[]).filter(p=>p.id===w.id).forEach(p=>dates.push(p.date));
+ let start=dates.sort()[0]||todayISO();
+ d.cycles.push({id:uid(),workerId:w.id,start,openingBalance:0,createdAt:todayISO()});
+}
+function save(renderNow=true){localStorage.setItem(STORE,JSON.stringify(data));localStorage.setItem(STORE+'_backup',JSON.stringify(data));if(renderNow)render()}
+function monthPrefix(){return iso(py,pm,1).slice(0,7)}
+function attKey(id,date){return id+'|'+date}
+function attStatus(id,date){return data.attendance[attKey(id,date)]||''}
+function attendanceRange(w,start,end){
+ let p=0,h=0,a=0;const s=parseDate(start),e=end?parseDate(end):new Date();
+ for(let x=new Date(s);x<=e;x.setDate(x.getDate()+1)){const v=attStatus(w.id,iso(x.getFullYear(),x.getMonth(),x.getDate()));if(v==='P')p++;else if(v==='H')h++;else if(v==='A')a++}
+ return{present:p,half:h,absent:a,worked:p+h/2}
+}
+function paymentTotal(id,start,end){
+ return data.payments.filter(p=>p.id===id&&p.date>=start&&(!end||p.date<=end)).reduce((s,p)=>s+Number(p.amount||0),0)
+}
+function cycleFor(w){return data.cycles.filter(c=>c.workerId===w.id&&!c.closedAt).sort((a,b)=>String(b.start).localeCompare(String(a.start)))[0]||null}
+function cycleStats(w,c){
+ const end=todayISO(),a=attendanceRange(w,c.start,end),earned=a.worked*Number(w.dailyRate??w.rate??0),given=paymentTotal(w.id,c.start,end),balance=Number(c.openingBalance||0)+earned-given;
+ return{...a,earned,given,balance,end}
+}
+function labelBalance(b){if(Math.abs(b)<.005)return{cls:'',text:'Account settled',amount:0};if(b>0)return{cls:'owe',text:'You owe worker',amount:b};return{cls:'reverse',text:'Worker owes you',amount:Math.abs(b)}}
+function init(){
+ $('mo').innerHTML=M.map((x,i)=>'<option value="'+i+'">'+x+'</option>').join('');
+ $('yr').innerHTML=Array.from({length:21},(_,i)=>2010+i).map(y=>'<option>'+y+'</option>').join('');
+ $('mo').value=pm;$('yr').value=py;$('mo').onchange=chg;$('yr').onchange=chg;
+}
+function chg(){pm=Number($('mo').value);py=Number($('yr').value);render()}
+function page(id,b){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));if(b)b.classList.add('on');
+ if(id==='profile')renderProfile();
+}
+function render(){
+ init();$('homePeriod').textContent=M[pm]+' '+py;
+ $('attTitle').textContent=M[pm]+' '+py+' Attendance';$('paytitle').textContent=M[pm]+' '+py+' Payments';
+ renderStats();renderSummary();renderAtt();renderWorkers();renderPays();renderHist();if(pid)renderProfile();
+}
+function renderStats(){
+ const ws=data.workers.filter(w=>w.active!==false),worked=ws.reduce((s,w)=>s+attendanceRange(w,iso(py,pm,1),iso(py,pm,daysIn(py,pm))).worked,0);
+ const given=ws.reduce((s,w)=>s+paymentTotal(w.id,iso(py,pm,1),iso(py,pm,daysIn(py,pm))),0);
+ const owed=ws.reduce((s,w)=>{const c=cycleFor(w);return s+(c?Math.max(0,cycleStats(w,c).balance):0)},0);
+ $('stats').innerHTML='<div class="stat"><b>'+ws.length+'</b><div class="small">Active workers</div></div><div class="stat"><b>'+worked+'</b><div class="small">Worked this month</div></div><div class="stat"><b>₹'+money(given)+'</b><div class="small">Money given</div></div><div class="stat"><b>₹'+money(owed)+'</b><div class="small">Currently to give</div></div>';
+}
+function renderSummary(){
+ $('summary').innerHTML=data.workers.filter(w=>w.active!==false).map(w=>{
+   const c=cycleFor(w),s=c?cycleStats(w,c):{worked:0,earned:0,given:0,balance:0},b=labelBalance(s.balance);
+   return '<div class="worker"><div class="row"><div class="grow"><div class="worker-name">'+esc(w.name)+'</div><div class="small">Cycle from '+fmtDate(c?.start||'')+' • ₹'+money(w.dailyRate||w.rate)+' / day</div></div><button onclick="openProfile('+w.id+')">Open Hisaab</button></div><div class="chips" style="margin-top:9px"><span class="chip">'+s.worked+' days</span><span class="chip">Earned ₹'+money(s.earned)+'</span><span class="chip">Given ₹'+money(s.given)+'</span><span class="chip">'+(b.amount?'₹'+money(b.amount)+' '+b.text:b.text)+'</span></div></div>';
+ }).join('')||'<div class="empty">No workers yet. Add your first worker.</div>';
+}
+function renderAtt(){
+ const q=($('asearch').value||'').toLowerCase(),ws=data.workers.filter(w=>w.active!==false&&w.name.toLowerCase().includes(q)),n=daysIn(py,pm);
+ let h='<tr><th class="left">Worker</th>';for(let d=1;d<=n;d++)h+='<th>'+d+'</th>';h+='<th>Worked</th></tr>';
+ ws.forEach(w=>{let wt=0;h+='<tr><td class="left"><b>'+esc(w.name)+'</b></td>';for(let d=1;d<=n;d++){const date=iso(py,pm,d),v=attStatus(w.id,date);if(v==='P')wt++;if(v==='H')wt+=.5;h+='<td><button class="att" onclick="cycleAtt('+w.id+',\''+date+'\')">'+icon(v)+'</button></td>'}h+='<td><b>'+wt+'</b></td></tr>'});
+ $('atable').innerHTML=h;
+}
+function cycleAtt(id,date){let v=attStatus(id,date);v=v===''?'P':v==='P'?'A':v==='A'?'H':'';if(v)data.attendance[attKey(id,date)]=v;else delete data.attendance[attKey(id,date)];save()}
+function icon(v){return v==='P'?'🟢':v==='A'?'🔴':v==='H'?'🟡':'⚫'}
+function renderWorkers(){
+ $('wlist').innerHTML=data.workers.map(w=>{const c=cycleFor(w),s=c?cycleStats(w,c):null,b=s?labelBalance(s.balance):null;return '<div class="worker"><div class="row"><div class="grow"><div class="worker-name">'+esc(w.name)+(w.active===false?' <span class="small">(inactive)</span>':'')+'</div><div class="small">₹'+money(w.dailyRate||w.rate)+' daily wage'+(c?' • Account from '+fmtDate(c.start):'')+'</div></div><button onclick="openProfile('+w.id+')">Profile</button><button onclick="toggleWorker('+w.id+')">'+(w.active===false?'Activate':'Deactivate')+'</button></div>'+(s?'<div class="small" style="margin-top:8px">'+s.worked+' days • Earned ₹'+money(s.earned)+' • Given ₹'+money(s.given)+' • <b>'+(b.amount?'₹'+money(b.amount)+' '+b.text:b.text)+'</b></div>':'')+'</div>'}).join('')||'<div class="empty">No workers yet.</div>';
+}
+function openAdd(){showModal('<h3>Add worker</h3><div class="form-grid"><div class="field full"><label>Worker name</label><input id="fName" placeholder="e.g. Ramesh"></div><div class="field"><label>Daily wage ₹</label><input id="fRate" type="number" min="0" placeholder="700"></div><div class="field"><label>Account start date</label><input id="fStart" type="date" value="'+todayISO()+'"></div></div><div class="row" style="margin-top:14px"><span class="grow"></span><button onclick="closeModal()">Cancel</button><button class="primary" onclick="addWorker()">Add worker</button></div>')}
+function addWorker(){const name=$('fName').value.trim(),rate=Number($('fRate').value||0),start=$('fStart').value||todayISO();if(!name)return alert('Enter worker name.');const id=uid();data.workers.push({id,name,rate,dailyRate:rate,active:true,createdAt:todayISO()});data.cycles.push({id:uid(),workerId:id,start,openingBalance:0,createdAt:todayISO()});closeModal();save()}
+function editWorker(id){const w=data.workers.find(x=>x.id===id);if(!w)return;showModal('<h3>Edit worker</h3><div class="form-grid"><div class="field full"><label>Name</label><input id="eName" value="'+escAttr(w.name)+'"></div><div class="field"><label>Daily wage ₹</label><input id="eRate" type="number" value="'+Number(w.dailyRate??w.rate??0)+'"></div><div class="field"><label>Current account start</label><input id="eStart" type="date" value="'+(cycleFor(w)?.start||todayISO())+'"></div></div><div class="row" style="margin-top:14px"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="saveWorkerEdit('+id+')">Save changes</button></div>')}
+function saveWorkerEdit(id){const w=data.workers.find(x=>x.id===id);if(!w)return;w.name=$('eName').value.trim()||w.name;w.dailyRate=Number($('eRate').value||0);w.rate=w.dailyRate;const c=cycleFor(w);if(c&&confirm('Change the current account start date too?'))c.start=$('eStart').value||c.start;closeModal();save()}
+function toggleWorker(id){const w=data.workers.find(x=>x.id===id);if(w){w.active=w.active===false;save()}}
+function deleteWorker(id){const w=data.workers.find(x=>x.id===id);if(!w)return;if(!confirm('Delete '+w.name+'? This permanently removes their attendance, payments and account cycles from this browser.'))return;data.workers=data.workers.filter(x=>x.id!==id);data.payments=data.payments.filter(x=>x.id!==id);data.cycles=data.cycles.filter(x=>x.workerId!==id);Object.keys(data.attendance).forEach(k=>{if(k.startsWith(id+'|'))delete data.attendance[k]});pid=null;page('workers');save()}
+function openProfile(id){pid=id;ptab='overview';page('profile')}
+function renderProfile(){
+ const w=data.workers.find(x=>x.id===pid);if(!w){page('workers');return}const c=cycleFor(w);if(!c){ensureCycle(w);save(false)}const cc=cycleFor(w),s=cycleStats(w,cc),b=labelBalance(s.balance);
+ $('pname').textContent=w.name;$('pmeta').textContent='₹'+money(w.dailyRate||w.rate)+' per day • '+(w.active===false?'Inactive':'Active')+' • Account from '+fmtDate(cc.start);
+ $('accountCard').innerHTML='<div class="section-title"><div><h3>Current Hisaab</h3><div class="small">'+fmtDate(cc.start)+' → ongoing</div></div><button class="primary" onclick="openPayment('+w.id+')">＋ Give money</button></div><div class="balance '+b.cls+'"><div class="small">'+b.text+'</div><div class="amount">₹'+money(b.amount)+'</div><div class="small">'+(b.amount?'Based on opening balance + earnings − money given':'Nothing is currently outstanding')+'</div></div><div class="grid" style="margin-top:10px"><div class="stat"><b>'+s.worked+'</b><div class="small">Days worked</div></div><div class="stat"><b>₹'+money(s.earned)+'</b><div class="small">Earned this cycle</div></div><div class="stat"><b>₹'+money(s.given)+'</b><div class="small">Given this cycle</div></div><div class="stat"><b>₹'+money(cc.openingBalance)+'</b><div class="small">Opening balance</div></div></div><div class="row" style="margin-top:11px"><button onclick="openNewCycle('+w.id+')">＋ Start new account cycle</button><button onclick="settleAccount('+w.id+')">✓ Settle account</button></div>';
+ if(ptab==='overview')profileOverview(w,cc,s);if(ptab==='attendance')profileAttendance(w,cc);if(ptab==='payments')profilePayments(w,cc);if(ptab==='cycles')profileCycles(w);
+}
+function profileTab(t){ptab=t;['Overview','Attendance','Payments','Cycles'].forEach(x=>$('tab'+x).classList.toggle('on',t===x.toLowerCase()));renderProfile()}
+function profileOverview(w,c,s){const pays=data.payments.filter(p=>p.id===w.id&&p.date>=c.start).sort((a,b)=>b.date.localeCompare(a.date));$('profileContent').innerHTML='<div class="grid"><div class="stat"><b>'+s.present+'</b><div class="small">Present</div></div><div class="stat"><b>'+s.half+'</b><div class="small">Half days</div></div><div class="stat"><b>'+s.absent+'</b><div class="small">Absent</div></div><div class="stat"><b>₹'+money(w.dailyRate||w.rate)+'</b><div class="small">Daily wage</div></div></div><h3 style="margin-top:16px">Recent payments</h3>'+paymentRows(pays.slice(0,8),true)}
+function profileAttendance(w,c){const a=attendanceRange(w,c.start,todayISO());$('profileContent').innerHTML='<div class="chips" style="margin-bottom:12px"><span class="chip">🟢 '+a.present+' present</span><span class="chip">🟡 '+a.half+' half</span><span class="chip">🔴 '+a.absent+' absent</span><span class="chip">Worked: '+a.worked+'</span></div><div class="table-wrap"><table><tr><th>Date</th><th>Status</th><th>Earned</th></tr>'+attendanceRows(w,c.start)+'</table></div>'}
+function attendanceRows(w,start){let out='',s=parseDate(start),e=new Date();for(let x=new Date(e);x>=s;x.setDate(x.getDate()-1)){const date=iso(x.getFullYear(),x.getMonth(),x.getDate()),v=attStatus(w.id,date);if(!v)continue;const earn=v==='P'?Number(w.dailyRate||w.rate):v==='H'?Number(w.dailyRate||w.rate)/2:0;out+='<tr><td>'+fmtDate(date)+'</td><td>'+icon(v)+' '+(v==='P'?'Present':v==='H'?'Half day':'Absent')+'</td><td>₹'+money(earn)+'</td></tr>'}return out||'<tr><td colspan="3" class="muted">No attendance marked in this cycle.</td></tr>'}
+function profilePayments(w,c){const pays=data.payments.filter(p=>p.id===w.id&&p.date>=c.start).sort((a,b)=>b.date.localeCompare(a.date));$('profileContent').innerHTML='<div class="notice">Every payment is kept separately so you can see exactly where the money went.</div><div style="margin-top:10px">'+paymentRows(pays,false)+'</div>'}
+function paymentRows(pays,compact){if(!pays.length)return '<div class="empty">No payments in this account cycle.</div>';return '<table class="ledger">'+pays.map(p=>'<tr><td class="left"><b>'+fmtDate(p.date)+'</b><div class="small">'+esc(p.note||'Money given')+'</div></td><td class="amount plus">₹'+money(p.amount)+'</td><td style="text-align:right">'+(compact?'':'<button onclick="deletePayment('+p.pid+')">Delete</button>')+'</td></tr>').join('')+'</table>'}
+function profileCycles(w){const cs=data.cycles.filter(c=>c.workerId===w.id).sort((a,b)=>String(b.start).localeCompare(String(a.start)));$('profileContent').innerHTML=cs.map(c=>{const end=c.closedAt?c.end:todayISO(),a=attendanceRange(w,c.start,end),earned=a.worked*(w.dailyRate||w.rate),given=paymentTotal(w.id,c.start,end),bal=Number(c.openingBalance||0)+earned-given,b=labelBalance(bal);return '<div class="worker"><div class="row"><b class="grow">'+fmtDate(c.start)+' → '+(c.closedAt?fmtDate(c.end):'Ongoing')+'</b><span class="chip">'+(c.closedAt?'Closed':'Current')+'</span></div><div class="small" style="margin-top:6px">Opening ₹'+money(c.openingBalance)+' • Worked '+a.worked+' • Earned ₹'+money(earned)+' • Given ₹'+money(given)+'</div><div style="margin-top:6px"><b>'+(b.amount?'₹'+money(b.amount)+' '+b.text:b.text)+'</b></div></div>'}).join('')||'<div class="empty">No cycles.</div>'}
+function openPayment(workerId){
+ const id=workerId||data.workers.find(w=>w.active!==false)?.id||'';
+ showModal('<h3>Give money</h3><div class="form-grid"><div class="field"><label>Worker</label><select id="payWorker">'+data.workers.filter(w=>w.active!==false).map(w=>'<option value="'+w.id+'" '+(String(w.id)===String(id)?'selected':'')+'>'+esc(w.name)+'</option>').join('')+'</select></div><div class="field"><label>Amount ₹</label><input id="payAmt" type="number" min="1" placeholder="1000"></div><div class="field"><label>Date</label><input id="payDate" type="date" value="'+todayISO()+'"></div><div class="field"><label>Type / description</label><select id="payNote"><option>Sunday payment</option><option>Advance</option><option>Weekly payment</option><option>Travel / expense</option><option>Food / expense</option><option>Account settlement</option><option>Other</option></select></div><div class="field full"><label>Extra note (optional)</label><input id="payExtra" placeholder="e.g. took ₹1000 for home"></div></div><div class="row" style="margin-top:14px"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="addPayment()">Save payment</button></div>');
+}
+function addPayment(){const id=Number($('payWorker').value),amount=Number($('payAmt').value),date=$('payDate').value,type=$('payNote').value,extra=$('payExtra').value.trim();if(!id||amount<=0||!date)return alert('Enter worker, amount and date.');data.payments.push({pid:uid(),id,amount,date,note:extra?type+' — '+extra:type});closeModal();save();if(pid===id)renderProfile()}
+function deletePayment(pid2){if(!confirm('Delete this payment?'))return;data.payments=data.payments.filter(p=>p.pid!==pid2);save()}
+function renderPays(){
+ const start=iso(py,pm,1),end=iso(py,pm,daysIn(py,pm)),p=data.payments.filter(x=>x.date>=start&&x.date<=end).sort((a,b)=>b.date.localeCompare(a.date));
+ const total=p.reduce((s,x)=>s+Number(x.amount||0),0);$('payMonthSummary').innerHTML='<div class="balance"><div class="small">Total money given in '+M[pm]+'</div><div class="amount">₹'+money(total)+'</div></div>';
+ $('plist').innerHTML=paymentRows(p,false).replaceAll('<button onclick="deletePayment(','<button onclick="deletePayment(')||'<div class="empty">No payments this month.</div>';
+ if(p.length)$('plist').innerHTML='<table class="ledger">'+p.map(x=>{const w=data.workers.find(y=>y.id===x.id);return '<tr><td class="left"><b>'+esc(w?.name||'Deleted worker')+'</b><div class="small">'+fmtDate(x.date)+' • '+esc(x.note||'Money given')+'</div></td><td class="amount">₹'+money(x.amount)+'</td><td><button onclick="deletePayment('+x.pid+')">Delete</button></td></tr>'}).join('')+'</table>';
+ else $('plist').innerHTML='<div class="empty">No payments this month.</div>';
+}
+function openNewCycle(id){
+ const w=data.workers.find(x=>x.id===id),c=cycleFor(w),s=cycleStats(w,c),b=labelBalance(s.balance);
+ showModal('<h3>Start new account cycle</h3><div class="notice">The current balance will become the opening balance of the new cycle. Previous attendance and payments stay safely in Account cycles.</div><div class="field" style="margin-top:12px"><label>New cycle starts</label><input id="cycleDate" type="date" value="'+todayISO()+'"></div><div style="margin-top:12px"><b>Current closing balance: '+(b.amount?'₹'+money(b.amount)+' — '+b.text:'Settled')+'</b></div><div class="row" style="margin-top:14px"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="createCycle('+id+')">Start new cycle</button></div>');
+}
+function createCycle(id){
+ const w=data.workers.find(x=>x.id===id),old=cycleFor(w),date=$('cycleDate').value;if(!w||!old||!date)return;
+ if(date<=old.start)return alert('New cycle date must be after the current cycle start.');
+ const s=cycleStats(w,old),end=new Date(parseDate(date));end.setDate(end.getDate()-1);
+ old.end=iso(end.getFullYear(),end.getMonth(),end.getDate());old.closedAt=todayISO();old.closingBalance=s.balance;
+ data.cycles.push({id:uid(),workerId:id,start:date,openingBalance:s.balance,createdAt:todayISO()});
+ closeModal();save()
+}
+function settleAccount(id){
+ const w=data.workers.find(x=>x.id===id),c=cycleFor(w);if(!w||!c)return;const s=cycleStats(w,c),b=labelBalance(s.balance);
+ if(!b.amount)return alert('This account is already settled.');
+ const amount=prompt((b.cls==='owe'?'You owe '+w.name:'Worker owes you')+' ₹'+money(b.amount)+'. Enter settlement amount:',money(b.amount).replaceAll(',',''));
+ if(amount===null)return;const n=Number(String(amount).replace(/,/g,''));if(!Number.isFinite(n)||n<=0)return alert('Enter a valid amount.');
+ if(b.cls==='owe')data.payments.push({pid:uid(),id,date:todayISO(),amount:n,note:'Account settlement'});else data.payments.push({pid:uid(),id,date:todayISO(),amount:-n,note:'Recovery / amount returned'});
+ save()
+}
+function renderHist(){
+ const ms=[...new Set(data.payments.map(x=>x.date.slice(0,7)))].sort().reverse();
+ $('hlist').innerHTML=ms.map(x=>'<div class="worker"><b>📅 '+x+'</b><div class="small">'+data.payments.filter(p=>p.date.startsWith(x)).length+' payment entries • ₹'+money(data.payments.filter(p=>p.date.startsWith(x)).reduce((s,p)=>s+Number(p.amount||0),0))+'</div></div>').join('')||'<div class="empty">No payment history yet.</div>';
+}
+function backup(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='worker-hisaab-backup-'+todayISO()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function restore(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.workers||!x.payments)throw Error();data=x;data.attendance=data.attendance||data.a||{};data.payments=data.payments||data.p||[];data.cycles=data.cycles||[];data.workers.forEach(ensureCycle);save();alert('Backup restored successfully.')}catch(err){alert('This backup is not a valid Worker Hisaab backup.')}};r.readAsText(file)};i.click()}
+function resetLocalBackup(){localStorage.setItem(STORE+'_safety_'+Date.now(),JSON.stringify(data));alert('A safety copy was created in this browser.')}
+function exportCSV(){const rows=[['Date','Worker','Amount','Description']];data.payments.forEach(p=>rows.push([p.date,data.workers.find(w=>w.id===p.id)?.name||'Deleted worker',p.amount,p.note||'']));const csv=rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='worker-payments.csv';a.click()}
+function showModal(html){$('modalBox').innerHTML=html;$('modal').classList.add('on')}
+function closeModal(){$('modal').classList.remove('on')}
+$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()})
+function fmtDate(s){if(!s)return'—';const d=parseDate(s);return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
+function esc(s){return String(s??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+function escAttr(s){return esc(s).replaceAll('"','&quot;')}
+load();render();
+</script>
+</body>
+</html>
