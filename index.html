@@ -3,240 +3,184 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#172554">
+<meta name="theme-color" content="#111111">
 <link rel="manifest" href="manifest.json">
-<title>Worker Hisaab Manager</title>
+<title>Worker Hisaab</title>
 <style>
-:root{--ink:#172033;--muted:#667085;--line:#e6e9ef;--bg:#f4f6fa;--card:#fff;--blue:#2563eb;--blue2:#172554;--green:#15803d;--red:#dc2626;--amber:#b45309}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
-button,input,select,textarea{font:inherit}button{border:0;border-radius:10px;padding:10px 13px;font-weight:750;cursor:pointer;background:#edf1f7;color:var(--ink)}button.primary{background:var(--blue);color:#fff}button.danger{background:#fee2e2;color:#991b1b}button.ghost{background:transparent;border:1px solid var(--line)}button:active{transform:scale(.98)}
-header{background:linear-gradient(135deg,#172554,#2563eb);color:#fff;padding:18px max(14px,calc((100vw - 1180px)/2));position:sticky;top:0;z-index:20;box-shadow:0 3px 18px #17255422}
-.brand{display:flex;align-items:center;gap:10px}.brand-icon{font-size:28px}.brand h1{font-size:19px;margin:0}.brand p{margin:2px 0 0;color:#dbeafe;font-size:12px}
-.top-controls{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap}.top-controls select{background:#fff;color:var(--ink)}
-main{max-width:1180px;margin:auto;padding:14px 14px 80px}.nav{display:flex;gap:7px;overflow:auto;margin-bottom:13px;scrollbar-width:none}.nav button{white-space:nowrap}.nav .on{background:var(--blue2);color:#fff}
-.page{display:none}.page.on{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:13px;box-shadow:0 2px 10px #17255408}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.grow{flex:1}.small{font-size:12px;color:var(--muted)}.muted{color:var(--muted)}h2,h3{margin:0 0 8px}h2{font-size:21px}h3{font-size:16px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.stat{padding:13px;border-radius:13px;background:#f7f9fc;border:1px solid #edf0f5}.stat b{font-size:19px}.stat .small{margin-top:3px}
-.balance{padding:16px;border-radius:15px;background:#eff6ff;border:1px solid #bfdbfe}.balance.owe{background:#f0fdf4;border-color:#bbf7d0}.balance.reverse{background:#fff7ed;border-color:#fed7aa}.balance .amount{font-size:27px;font-weight:850}.balance .label{font-weight:800;margin-top:2px}
-input,select,textarea{border:1px solid #cfd5df;border-radius:10px;padding:10px;background:#fff;color:var(--ink);min-width:0}input:focus,select:focus,textarea:focus{outline:2px solid #bfdbfe;border-color:#60a5fa}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:720px}th,td{padding:8px;border-bottom:1px solid #edf0f4;text-align:center;white-space:nowrap}th{background:#f8fafc;font-size:12px;color:#667085}td.left,th.left{text-align:left;position:sticky;left:0;background:#fff;z-index:1}.att{font-size:18px;background:transparent;padding:4px 6px}
-.worker{border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:9px;background:#fff}.worker:hover{border-color:#c7d2fe}.worker-name{font-weight:800;font-size:15px}
-.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{padding:5px 8px;border-radius:999px;background:#f2f4f7;font-size:12px;font-weight:700}
-.ledger{width:100%;border-collapse:collapse}.ledger td{padding:10px 6px}.ledger .amount{text-align:right;font-weight:800}.plus{color:var(--green)}.minus{color:var(--red)}
-.section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed #d7dce5;border-radius:12px}
-.modal{display:none;position:fixed;inset:0;background:#0008;align-items:flex-end;z-index:50}.modal.on{display:flex}.modal-box{background:#fff;width:100%;max-width:560px;margin:auto;border-radius:18px 18px 0 0;padding:18px;max-height:92vh;overflow:auto}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:12px;font-weight:750;margin-bottom:5px}.field.full{grid-column:1/-1}
-.notice{padding:10px 12px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;font-size:12px;color:#92400e}.tabs{display:flex;gap:6px;overflow:auto;margin-bottom:10px}.tabs button.on{background:var(--blue);color:#fff}
-@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.nav{margin-right:-14px;padding-right:14px}.card{border-radius:14px}header{padding:14px}.top-controls{margin-top:10px}main{padding-top:11px}}
-@media(min-width:950px){body{display:flex;min-height:100vh}header{position:fixed;left:0;top:0;bottom:0;width:245px;padding:26px 18px;background:linear-gradient(160deg,#172554,#1d4ed8);z-index:30}.brand{margin-bottom:28px}.top-controls{display:grid}.top-controls select{width:100%}main{margin-left:245px;width:calc(100% - 245px);max-width:1400px;padding:28px 30px 70px}.nav{background:#fff;border:1px solid var(--line);padding:7px;border-radius:14px;box-shadow:0 2px 10px #17255408}.nav button{flex:1}.card{padding:18px}}
+:root{--black:#111;--dark:#222;--mid:#666;--line:#ddd;--soft:#f5f5f5;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:#f7f7f7;color:var(--black);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+button,input,select{font:inherit}button{cursor:pointer;border:1px solid #ccc;background:#fff;color:#111;border-radius:8px;padding:10px 13px;font-weight:650}button:hover{background:#f1f1f1}button:active{transform:scale(.99)}button.black{background:#111;color:#fff;border-color:#111}button.danger{color:#b00000;border-color:#e4b5b5}
+.top{background:#111;color:#fff;padding:17px 20px}.top-inner{max-width:1180px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:15px}.brand{font-size:21px;font-weight:800;letter-spacing:-.4px}.period{display:flex;gap:7px}.period select{background:#222;color:#fff;border:1px solid #555;border-radius:7px;padding:8px}
+main{max-width:1180px;margin:auto;padding:22px 18px 60px}.home-title{margin:10px 0 22px}.home-title h1{font-size:27px;margin:0 0 4px}.home-title p{margin:0;color:#666}
+.home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.home-btn{min-height:125px;text-align:left;padding:20px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid #d6d6d6;background:#fff}.home-btn strong{font-size:18px}.home-btn span{font-size:13px;color:#666}.home-btn .ico{font-size:25px}
+.page{display:none}.page.on{display:block}.page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.page-head h2{margin:0;font-size:23px}.page-head p{margin:4px 0 0;color:#666;font-size:13px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:15px}.panel-pad{padding:16px}
+.monthbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.monthbar strong{font-size:17px}.monthbar button{padding:7px 10px}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:620px}.table th,.table td{border-bottom:1px solid #e5e5e5;padding:10px 9px;text-align:center;white-space:nowrap}.table th{background:#f3f3f3;font-size:12px;color:#555;font-weight:750}.table th:first-child,.table td:first-child{text-align:left;position:sticky;left:0;background:#fff}.table th:first-child{background:#f3f3f3}.table tr:last-child td{border-bottom:0}
+.att-btn{border:0;background:transparent;padding:3px 5px;font-size:18px}.att-btn:hover{background:#f3f3f3}
+.worker-list{display:grid;gap:9px}.worker-row{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #ddd;border-radius:9px;background:#fff}.worker-name{font-weight:750}.muted{color:#666;font-size:12px}.grow{flex:1}
+.profile-head{display:flex;align-items:center;gap:12px}.profile-head h2{margin:0}.profile-head p{margin:3px 0;color:#666;font-size:13px}
+.profile-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.profile-card{padding:17px;background:#fff;border:1px solid #d9d9d9;border-radius:9px;text-align:left;cursor:pointer}.profile-card:hover{border-color:#111}.profile-card .label{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.5px}.profile-card .value{font-size:22px;font-weight:800;margin-top:7px}.profile-card .hint{font-size:12px;color:#777;margin-top:4px}
+.back{margin-bottom:14px}.statement{max-width:720px}.statement-row{display:flex;justify-content:space-between;border-bottom:1px solid #e5e5e5;padding:12px 4px}.statement-row:last-child{border-bottom:0}.statement-row.total{font-weight:800;font-size:17px}.balance-box{margin-top:16px;padding:17px;border:1px solid #111;border-radius:9px}.balance-box .amount{font-size:26px;font-weight:850}.balance-box.negative{border-color:#777}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}.field.full{grid-column:1/-1}input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;background:#fff}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.empty{text-align:center;color:#777;padding:28px 15px}.total-line{display:flex;justify-content:flex-end;padding:12px;font-weight:800;border-top:1px solid #ccc}
+.history-item{padding:13px 0;border-bottom:1px solid #e5e5e5}.history-item:last-child{border:0}
+@media(max-width:800px){.home-grid{grid-template-columns:1fr 1fr}.profile-actions{grid-template-columns:1fr}.top-inner{align-items:flex-start;flex-direction:column}.period{width:100%}.period select{flex:1}}
+@media(max-width:520px){main{padding:17px 12px 50px}.home-grid{gap:9px}.home-btn{min-height:105px;padding:14px}.home-btn strong{font-size:15px}.home-btn .ico{font-size:21px}.form{grid-template-columns:1fr}.field.full{grid-column:auto}.page-head{align-items:flex-start;flex-direction:column}}
+@media(min-width:1100px){main{padding-left:30px;padding-right:30px}.home-btn{min-height:145px}.home-btn:hover{box-shadow:0 2px 10px #0000000d}}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand"><div class="brand-icon">👷</div><div><h1>Worker Hisaab</h1><p>Attendance • Payments • Accounts</p></div></div>
-  <div class="top-controls"><select id="mo"></select><select id="yr"></select></div>
-</header>
+<header class="top"><div class="top-inner"><div class="brand">WORKER HISAAB</div><div class="period"><select id="month"></select><select id="year"></select></div></div></header>
 <main>
-<nav class="nav">
-<button class="on" onclick="page('home',this)">🏠 Home</button>
-<button onclick="page('att',this)">📅 Attendance</button>
-<button onclick="page('workers',this)">👷 Workers</button>
-<button onclick="page('pay',this)">💰 Payments</button>
-<button onclick="page('history',this)">🕘 History</button>
-</nav>
-
 <section id="home" class="page on">
-<div class="card"><div class="section-title"><div><h2>Business overview</h2><div class="small" id="homePeriod"></div></div><button class="primary" onclick="openAdd()">＋ Worker</button></div><div id="stats" class="grid"></div></div>
-<div class="card"><div class="section-title"><h3>Worker accounts</h3><button onclick="page('workers')">View all</button></div><div id="summary"></div></div>
+<div class="home-title"><h1>Worker Hisaab</h1><p>Simple attendance and payment records</p></div>
+<div class="home-grid">
+<button class="home-btn" onclick="show('attendance')"><span class="ico">▦</span><strong>Attendance</strong><span>Mark daily attendance</span></button>
+<button class="home-btn" onclick="show('workers')"><span class="ico">♙</span><strong>Workers</strong><span>Profiles and Hisaab</span></button>
+<button class="home-btn" onclick="show('money')"><span class="ico">₹</span><strong>Money</strong><span>Excel-style payment record</span></button>
+<button class="home-btn" onclick="openSave()"><span class="ico">⇩</span><strong>Save / Backup</strong><span>Download or restore data</span></button>
+</div>
 </section>
 
-<section id="att" class="page">
-<div class="card"><div class="section-title"><div><h2 id="attTitle"></h2><div class="small">Tap to cycle: 🟢 Present → 🔴 Absent → 🟡 Half day → ⚫ Clear</div></div><input id="asearch" placeholder="Search worker" oninput="renderAtt()"></div><div class="table-wrap"><table id="atable"></table></div></div>
+<section id="attendance" class="page">
+<div class="page-head"><div><h2>Attendance</h2><p>Selected month only</p></div><button onclick="show('home')">Home</button></div>
+<div class="panel panel-pad"><div class="monthbar"><button onclick="changeMonth(-1)">←</button><strong id="attMonth"></strong><button onclick="changeMonth(1)">→</button></div><div class="table-wrap"><table class="table" id="attTable"></table></div></div>
 </section>
 
 <section id="workers" class="page">
-<div class="card"><div class="section-title"><div><h2>Workers</h2><div class="small">Open a worker for their full Hisaab.</div></div><button class="primary" onclick="openAdd()">＋ Add worker</button></div><div id="wlist"></div></div>
+<div class="page-head"><div><h2>Workers</h2><p>Open a profile to see the worker's monthly record and total Hisaab.</p></div><button class="black" onclick="openWorkerForm()">＋ Add Worker</button></div>
+<div class="panel panel-pad"><div id="workersList" class="worker-list"></div></div>
 </section>
 
 <section id="profile" class="page">
-<div class="card"><div class="row"><button onclick="page('workers')">← Workers</button><div class="grow"><h2 id="pname"></h2><div class="small" id="pmeta"></div></div><button onclick="editWorker(pid)">✏️ Edit</button><button class="danger" onclick="deleteWorker(pid)">Delete</button></div></div>
-<div class="card" id="accountCard"></div>
-<div class="card"><div class="tabs"><button id="tabOverview" class="on" onclick="profileTab('overview')">Overview</button><button id="tabAttendance" onclick="profileTab('attendance')">Attendance</button><button id="tabPayments" onclick="profileTab('payments')">Payments</button><button id="tabCycles" onclick="profileTab('cycles')">Account cycles</button></div><div id="profileContent"></div></div>
+<div class="back"><button onclick="show('workers')">← Workers</button></div>
+<div class="panel panel-pad"><div class="profile-head"><div class="grow"><h2 id="profileName"></h2><p id="profileMeta"></p></div><button onclick="openWorkerForm(profileId)">Edit</button></div></div>
+<div class="profile-actions">
+<button class="profile-card" onclick="profileView='attendance';renderProfile()"><div class="label">Days Worked</div><div class="value" id="profileDays"></div><div class="hint" id="profileDaysHint"></div></button>
+<button class="profile-card" onclick="profileView='money';renderProfile()"><div class="label">Money Given</div><div class="value" id="profileMoney"></div><div class="hint" id="profileMoneyHint"></div></button>
+<button class="profile-card" onclick="profileView='hisaab';renderProfile()"><div class="label">Total Hisaab</div><div class="value" id="profileBalance"></div><div class="hint">Complete account record</div></button>
+</div>
+<div id="profileDetail" class="panel panel-pad" style="margin-top:15px"></div>
 </section>
 
-<section id="pay" class="page">
-<div class="card"><div class="section-title"><div><h2>Payments</h2><div class="small">Record every amount you give, with a clear reason.</div></div><button class="primary" onclick="openPayment()">＋ Give money</button></div><div id="payMonthSummary"></div></div>
-<div class="card"><h3 id="paytitle"></h3><div id="plist"></div></div>
+<section id="money" class="page">
+<div class="page-head"><div><h2>Money</h2><p>Simple payment table — no notes or categories.</p></div><button class="black" onclick="openPayment()">＋ Give Money</button></div>
+<div class="panel panel-pad"><div class="monthbar"><button onclick="changeMonth(-1)">←</button><strong id="moneyMonth"></strong><button onclick="changeMonth(1)">→</button></div><div class="table-wrap"><table class="table" id="moneyTable"></table></div><div id="moneyTotal"></div></div>
 </section>
 
-<section id="history" class="page">
-<div class="card"><div class="section-title"><div><h2>Backup & history</h2><div class="small">Keep a backup before changing phones or clearing browser data.</div></div><div class="row"><button class="primary" onclick="backup()">💾 Backup</button><button onclick="restore()">♻️ Restore</button></div></div><div id="hlist"></div></div>
-<div class="card"><h3>Safety</h3><div class="notice">This app stores data in this browser. GitHub Pages does not store your worker records. Back up regularly.</div><div class="row" style="margin-top:10px"><button onclick="exportCSV()">Export payment CSV</button><button onclick="resetLocalBackup()">Create safety copy</button></div></div>
+<section id="save" class="page">
+<div class="page-head"><div><h2>Save / Backup</h2><p>Your records stay in this browser. Keep a backup.</p></div><button onclick="show('home')">Home</button></div>
+<div class="panel panel-pad">
+<h3 style="margin-top:0">Backup</h3><p class="muted">Download a copy of all workers, attendance, payments and account history.</p>
+<div class="actions" style="justify-content:flex-start"><button class="black" onclick="downloadBackup()">Download Backup</button><button onclick="restoreBackup()">Restore Backup</button></div>
+</div>
+<div class="panel panel-pad"><h3 style="margin-top:0">Account History</h3><div id="historyList"></div></div>
 </section>
 </main>
 
-<div id="modal" class="modal"><div class="modal-box" id="modalBox"></div></div>
+<div id="modal" style="display:none;position:fixed;inset:0;background:#0008;z-index:20;padding:15px;align-items:center;justify-content:center"><div id="modalBox" style="background:#fff;width:min(560px,100%);max-height:92vh;overflow:auto;border-radius:10px;padding:18px"></div></div>
 
 <script>
-const STORE='wm_hisaab_v1',OLD='wm_v3',M=['January','February','March','April','May','June','July','August','September','October','November','December'],D=new Date();
-let data=null,pm=D.getMonth(),py=D.getFullYear(),pid=null,ptab='overview';
+const KEY='worker_hisaab_bw_v1',OLD='wm_hisaab_v1',months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const now=new Date();let month=now.getMonth(),year=now.getFullYear(),db,profileId=null,profileView='hisaab';
 
-function $(id){return document.getElementById(id)}
-function money(n){return Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2})}
-function iso(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
-function parseDate(s){return new Date(String(s)+'T00:00:00')}
-function daysIn(y,m){return new Date(y,m+1,0).getDate()}
-function todayISO(){return iso(D.getFullYear(),D.getMonth(),D.getDate())}
-function uid(){return Date.now()+Math.floor(Math.random()*1000)}
+const $=id=>document.getElementById(id);
+const uid=()=>Date.now()+Math.floor(Math.random()*999);
+const iso=(y,m,d)=>y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+const today=()=>iso(now.getFullYear(),now.getMonth(),now.getDate());
+const daysIn=(y,m)=>new Date(y,m+1,0).getDate();
+const fmt=d=>d?new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const rupee=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const monthStart=()=>iso(year,month,1),monthEnd=()=>iso(year,month,daysIn(year,month));
+
 function load(){
- try{data=JSON.parse(localStorage.getItem(STORE)||'null')}catch(e){}
- if(!data){
-   try{const old=JSON.parse(localStorage.getItem(OLD)||'null');data=migrate(old)}catch(e){}
- }
- data=data||{version:1,workers:[],attendance:{},payments:[],cycles:[]};
- data.attendance=data.attendance||data.a||{};data.payments=data.payments||data.p||[];data.cycles=data.cycles||[];
- data.workers=(data.workers||[]).map(w=>({...w,active:w.active!==false,rate:Number(w.rate||0),dailyRate:Number(w.dailyRate??w.rate??0)}));
- data.workers.forEach(ensureCycle);
- save(false);
+ try{db=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){db=null}
+ if(!db){try{const old=JSON.parse(localStorage.getItem(OLD)||'null');db=old?migrate(old):null}catch(e){}}
+ if(!db)db={workers:[],attendance:{},payments:[],cycles:[]};
+ db.workers=db.workers||[];db.attendance=db.attendance||{};db.payments=db.payments||[];db.cycles=db.cycles||[];
+ db.workers.forEach(w=>{w.dailyRate=Number(w.dailyRate??w.rate??0);w.active=w.active!==false;if(!currentCycle(w))db.cycles.push({id:uid(),workerId:w.id,start:w.createdAt||today(),opening:0})});
+ persist(false);
 }
-function migrate(old){
- if(!old)return null;
- const d={version:1,workers:[],attendance:old.a||{},payments:(old.p||[]).map(x=>({pid:x.pid||uid(),id:x.id,amount:Number(x.amount||0),date:x.date,note:x.note||'Money given'})),cycles:[]};
- d.workers=(old.workers||[]).map(w=>({id:w.id,name:w.name,rate:Number(w.rate||0),dailyRate:Number(w.rate||0),active:w.active!==false,createdAt:todayISO()}));
- d.workers.forEach(w=>ensureCycle(w,d));
- return d;
+function migrate(o){
+ const x={workers:[],attendance:o.attendance||o.a||{},payments:[],cycles:[]};
+ x.workers=(o.workers||[]).map(w=>({id:w.id,name:w.name,dailyRate:Number(w.dailyRate??w.rate??0),active:w.active!==false,createdAt:w.createdAt||today()}));
+ x.payments=(o.payments||o.p||[]).map(p=>({id:uid(),workerId:p.workerId??p.id,date:p.date,amount:Number(p.amount||0)}));
+ return x;
 }
-function ensureCycle(w,d=data){
- if((d.cycles||[]).some(c=>c.workerId===w.id&&!c.closedAt))return;
- const dates=[];
- Object.keys(d.attendance||{}).forEach(k=>{if(k.startsWith(w.id+'|'))dates.push(k.slice(3))});
- (d.payments||[]).filter(p=>p.id===w.id).forEach(p=>dates.push(p.date));
- let start=dates.sort()[0]||todayISO();
- d.cycles.push({id:uid(),workerId:w.id,start,openingBalance:0,createdAt:todayISO()});
+function persist(render=true){localStorage.setItem(KEY,JSON.stringify(db));if(render)renderAll()}
+function currentCycle(w){return db.cycles.filter(c=>c.workerId===w.id&&!c.closed).sort((a,b)=>String(b.start).localeCompare(String(a.start)))[0]}
+function activeWorkers(){return db.workers.filter(w=>w.active!==false)}
+function att(wid,date){return db.attendance[wid+'|'+date]||''}
+function setAtt(wid,date){
+ const v=att(wid,date),next=v===''?'P':v==='P'?'A':v==='A'?'H':'';
+ if(next)db.attendance[wid+'|'+date]=next;else delete db.attendance[wid+'|'+date];persist()
 }
-function save(renderNow=true){localStorage.setItem(STORE,JSON.stringify(data));localStorage.setItem(STORE+'_backup',JSON.stringify(data));if(renderNow)render()}
-function monthPrefix(){return iso(py,pm,1).slice(0,7)}
-function attKey(id,date){return id+'|'+date}
-function attStatus(id,date){return data.attendance[attKey(id,date)]||''}
-function attendanceRange(w,start,end){
- let p=0,h=0,a=0;const s=parseDate(start),e=end?parseDate(end):new Date();
- for(let x=new Date(s);x<=e;x.setDate(x.getDate()+1)){const v=attStatus(w.id,iso(x.getFullYear(),x.getMonth(),x.getDate()));if(v==='P')p++;else if(v==='H')h++;else if(v==='A')a++}
+function monthStats(w){
+ let p=0,h=0,a=0;for(let d=1;d<=daysIn(year,month);d++){const v=att(w.id,iso(year,month,d));if(v==='P')p++;if(v==='H')h++;if(v==='A')a++}
  return{present:p,half:h,absent:a,worked:p+h/2}
 }
-function paymentTotal(id,start,end){
- return data.payments.filter(p=>p.id===id&&p.date>=start&&(!end||p.date<=end)).reduce((s,p)=>s+Number(p.amount||0),0)
-}
-function cycleFor(w){return data.cycles.filter(c=>c.workerId===w.id&&!c.closedAt).sort((a,b)=>String(b.start).localeCompare(String(a.start)))[0]||null}
 function cycleStats(w,c){
- const end=todayISO(),a=attendanceRange(w,c.start,end),earned=a.worked*Number(w.dailyRate??w.rate??0),given=paymentTotal(w.id,c.start,end),balance=Number(c.openingBalance||0)+earned-given;
- return{...a,earned,given,balance,end}
+ const end=today(),s=new Date(c.start+'T00:00:00'),e=new Date(end+'T00:00:00');let worked=0;
+ for(let x=new Date(s);x<=e;x.setDate(x.getDate()+1)){const d=iso(x.getFullYear(),x.getMonth(),x.getDate()),v=att(w.id,d);if(v==='P')worked++;else if(v==='H')worked+=.5}
+ const given=db.payments.filter(p=>p.workerId===w.id&&p.date>=c.start).reduce((a,p)=>a+Number(p.amount||0),0);
+ const earned=worked*w.dailyRate;return{worked,earned,given,balance:Number(c.opening||0)+earned-given}
 }
-function labelBalance(b){if(Math.abs(b)<.005)return{cls:'',text:'Account settled',amount:0};if(b>0)return{cls:'owe',text:'You owe worker',amount:b};return{cls:'reverse',text:'Worker owes you',amount:Math.abs(b)}}
-function init(){
- $('mo').innerHTML=M.map((x,i)=>'<option value="'+i+'">'+x+'</option>').join('');
- $('yr').innerHTML=Array.from({length:21},(_,i)=>2010+i).map(y=>'<option>'+y+'</option>').join('');
- $('mo').value=pm;$('yr').value=py;$('mo').onchange=chg;$('yr').onchange=chg;
+function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));$(id).classList.add('on');if(id==='attendance')renderAttendance();if(id==='workers')renderWorkers();if(id==='money')renderMoney();if(id==='save')renderHistory();if(id==='profile')renderProfile()}
+function changeMonth(n){month+=n;if(month<0){month=11;year--}if(month>11){month=0;year++}$('month').value=month;$('year').value=year;renderAll()}
+function initSelectors(){ $('month').innerHTML=months.map((m,i)=>'<option value="'+i+'">'+m+'</option>').join('');let ys='';for(let y=2020;y<=2035;y++)ys+='<option>'+y+'</option>';$('year').innerHTML=ys;$('month').value=month;$('year').value=year;$('month').onchange=()=>{month=+$('month').value;renderAll()};$('year').onchange=()=>{year=+$('year').value;renderAll()}}
+function renderAll(){initSelectors();renderAttendance();renderWorkers();renderMoney();renderHistory();if(profileId)renderProfile()}
+function renderAttendance(){
+ $('attMonth').textContent=months[month]+' '+year;let h='<tr><th>Worker</th>';for(let d=1;d<=daysIn(year,month);d++)h+='<th>'+d+'</th>';h+='<th>Worked</th></tr>';
+ activeWorkers().forEach(w=>{const s=monthStats(w);h+='<tr><td><b>'+esc(w.name)+'</b></td>';for(let d=1;d<=daysIn(year,month);d++){const v=att(w.id,iso(year,month,d));h+='<td><button class="att-btn" onclick="setAtt('+w.id+',\''+iso(year,month,d)+'\')">'+(v==='P'?'🟢':v==='A'?'🔴':v==='H'?'🟡':'⚫')+'</button></td>'}h+='<td><b>'+s.worked+'</b></td></tr>'});
+ $('attTable').innerHTML=h||'<tr><td>No active workers.</td></tr>'
 }
-function chg(){pm=Number($('mo').value);py=Number($('yr').value);render()}
-function page(id,b){
- document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));$(id).classList.add('on');
- document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));if(b)b.classList.add('on');
- if(id==='profile')renderProfile();
-}
-function render(){
- init();$('homePeriod').textContent=M[pm]+' '+py;
- $('attTitle').textContent=M[pm]+' '+py+' Attendance';$('paytitle').textContent=M[pm]+' '+py+' Payments';
- renderStats();renderSummary();renderAtt();renderWorkers();renderPays();renderHist();if(pid)renderProfile();
-}
-function renderStats(){
- const ws=data.workers.filter(w=>w.active!==false),worked=ws.reduce((s,w)=>s+attendanceRange(w,iso(py,pm,1),iso(py,pm,daysIn(py,pm))).worked,0);
- const given=ws.reduce((s,w)=>s+paymentTotal(w.id,iso(py,pm,1),iso(py,pm,daysIn(py,pm))),0);
- const owed=ws.reduce((s,w)=>{const c=cycleFor(w);return s+(c?Math.max(0,cycleStats(w,c).balance):0)},0);
- $('stats').innerHTML='<div class="stat"><b>'+ws.length+'</b><div class="small">Active workers</div></div><div class="stat"><b>'+worked+'</b><div class="small">Worked this month</div></div><div class="stat"><b>₹'+money(given)+'</b><div class="small">Money given</div></div><div class="stat"><b>₹'+money(owed)+'</b><div class="small">Currently to give</div></div>';
-}
-function renderSummary(){
- $('summary').innerHTML=data.workers.filter(w=>w.active!==false).map(w=>{
-   const c=cycleFor(w),s=c?cycleStats(w,c):{worked:0,earned:0,given:0,balance:0},b=labelBalance(s.balance);
-   return '<div class="worker"><div class="row"><div class="grow"><div class="worker-name">'+esc(w.name)+'</div><div class="small">Cycle from '+fmtDate(c?.start||'')+' • ₹'+money(w.dailyRate||w.rate)+' / day</div></div><button onclick="openProfile('+w.id+')">Open Hisaab</button></div><div class="chips" style="margin-top:9px"><span class="chip">'+s.worked+' days</span><span class="chip">Earned ₹'+money(s.earned)+'</span><span class="chip">Given ₹'+money(s.given)+'</span><span class="chip">'+(b.amount?'₹'+money(b.amount)+' '+b.text:b.text)+'</span></div></div>';
- }).join('')||'<div class="empty">No workers yet. Add your first worker.</div>';
-}
-function renderAtt(){
- const q=($('asearch').value||'').toLowerCase(),ws=data.workers.filter(w=>w.active!==false&&w.name.toLowerCase().includes(q)),n=daysIn(py,pm);
- let h='<tr><th class="left">Worker</th>';for(let d=1;d<=n;d++)h+='<th>'+d+'</th>';h+='<th>Worked</th></tr>';
- ws.forEach(w=>{let wt=0;h+='<tr><td class="left"><b>'+esc(w.name)+'</b></td>';for(let d=1;d<=n;d++){const date=iso(py,pm,d),v=attStatus(w.id,date);if(v==='P')wt++;if(v==='H')wt+=.5;h+='<td><button class="att" onclick="cycleAtt('+w.id+',\''+date+'\')">'+icon(v)+'</button></td>'}h+='<td><b>'+wt+'</b></td></tr>'});
- $('atable').innerHTML=h;
-}
-function cycleAtt(id,date){let v=attStatus(id,date);v=v===''?'P':v==='P'?'A':v==='A'?'H':'';if(v)data.attendance[attKey(id,date)]=v;else delete data.attendance[attKey(id,date)];save()}
-function icon(v){return v==='P'?'🟢':v==='A'?'🔴':v==='H'?'🟡':'⚫'}
 function renderWorkers(){
- $('wlist').innerHTML=data.workers.map(w=>{const c=cycleFor(w),s=c?cycleStats(w,c):null,b=s?labelBalance(s.balance):null;return '<div class="worker"><div class="row"><div class="grow"><div class="worker-name">'+esc(w.name)+(w.active===false?' <span class="small">(inactive)</span>':'')+'</div><div class="small">₹'+money(w.dailyRate||w.rate)+' daily wage'+(c?' • Account from '+fmtDate(c.start):'')+'</div></div><button onclick="openProfile('+w.id+')">Profile</button><button onclick="toggleWorker('+w.id+')">'+(w.active===false?'Activate':'Deactivate')+'</button></div>'+(s?'<div class="small" style="margin-top:8px">'+s.worked+' days • Earned ₹'+money(s.earned)+' • Given ₹'+money(s.given)+' • <b>'+(b.amount?'₹'+money(b.amount)+' '+b.text:b.text)+'</b></div>':'')+'</div>'}).join('')||'<div class="empty">No workers yet.</div>';
+ const list=$('workersList');if(!db.workers.length){list.innerHTML='<div class="empty">No workers added yet.</div>';return}
+ list.innerHTML=db.workers.map(w=>'<div class="worker-row"><div class="grow"><div class="worker-name">'+esc(w.name)+(w.active===false?' <span class="muted">(inactive)</span>':'')+'</div><div class="muted">Daily wage: '+rupee(w.dailyRate)+'</div></div><button onclick="openProfile('+w.id+')">Profile</button><button onclick="editWorker('+w.id+')">Edit</button><button onclick="toggleWorker('+w.id+')">'+(w.active===false?'Activate':'Deactivate')+'</button><button class="danger" onclick="deleteWorker('+w.id+')">Delete</button></div>').join('')
 }
-function openAdd(){showModal('<h3>Add worker</h3><div class="form-grid"><div class="field full"><label>Worker name</label><input id="fName" placeholder="e.g. Ramesh"></div><div class="field"><label>Daily wage ₹</label><input id="fRate" type="number" min="0" placeholder="700"></div><div class="field"><label>Account start date</label><input id="fStart" type="date" value="'+todayISO()+'"></div></div><div class="row" style="margin-top:14px"><span class="grow"></span><button onclick="closeModal()">Cancel</button><button class="primary" onclick="addWorker()">Add worker</button></div>')}
-function addWorker(){const name=$('fName').value.trim(),rate=Number($('fRate').value||0),start=$('fStart').value||todayISO();if(!name)return alert('Enter worker name.');const id=uid();data.workers.push({id,name,rate,dailyRate:rate,active:true,createdAt:todayISO()});data.cycles.push({id:uid(),workerId:id,start,openingBalance:0,createdAt:todayISO()});closeModal();save()}
-function editWorker(id){const w=data.workers.find(x=>x.id===id);if(!w)return;showModal('<h3>Edit worker</h3><div class="form-grid"><div class="field full"><label>Name</label><input id="eName" value="'+escAttr(w.name)+'"></div><div class="field"><label>Daily wage ₹</label><input id="eRate" type="number" value="'+Number(w.dailyRate??w.rate??0)+'"></div><div class="field"><label>Current account start</label><input id="eStart" type="date" value="'+(cycleFor(w)?.start||todayISO())+'"></div></div><div class="row" style="margin-top:14px"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="saveWorkerEdit('+id+')">Save changes</button></div>')}
-function saveWorkerEdit(id){const w=data.workers.find(x=>x.id===id);if(!w)return;w.name=$('eName').value.trim()||w.name;w.dailyRate=Number($('eRate').value||0);w.rate=w.dailyRate;const c=cycleFor(w);if(c&&confirm('Change the current account start date too?'))c.start=$('eStart').value||c.start;closeModal();save()}
-function toggleWorker(id){const w=data.workers.find(x=>x.id===id);if(w){w.active=w.active===false;save()}}
-function deleteWorker(id){const w=data.workers.find(x=>x.id===id);if(!w)return;if(!confirm('Delete '+w.name+'? This permanently removes their attendance, payments and account cycles from this browser.'))return;data.workers=data.workers.filter(x=>x.id!==id);data.payments=data.payments.filter(x=>x.id!==id);data.cycles=data.cycles.filter(x=>x.workerId!==id);Object.keys(data.attendance).forEach(k=>{if(k.startsWith(id+'|'))delete data.attendance[k]});pid=null;page('workers');save()}
-function openProfile(id){pid=id;ptab='overview';page('profile')}
+function openProfile(id){profileId=id;profileView='hisaab';show('profile')}
 function renderProfile(){
- const w=data.workers.find(x=>x.id===pid);if(!w){page('workers');return}const c=cycleFor(w);if(!c){ensureCycle(w);save(false)}const cc=cycleFor(w),s=cycleStats(w,cc),b=labelBalance(s.balance);
- $('pname').textContent=w.name;$('pmeta').textContent='₹'+money(w.dailyRate||w.rate)+' per day • '+(w.active===false?'Inactive':'Active')+' • Account from '+fmtDate(cc.start);
- $('accountCard').innerHTML='<div class="section-title"><div><h3>Current Hisaab</h3><div class="small">'+fmtDate(cc.start)+' → ongoing</div></div><button class="primary" onclick="openPayment('+w.id+')">＋ Give money</button></div><div class="balance '+b.cls+'"><div class="small">'+b.text+'</div><div class="amount">₹'+money(b.amount)+'</div><div class="small">'+(b.amount?'Based on opening balance + earnings − money given':'Nothing is currently outstanding')+'</div></div><div class="grid" style="margin-top:10px"><div class="stat"><b>'+s.worked+'</b><div class="small">Days worked</div></div><div class="stat"><b>₹'+money(s.earned)+'</b><div class="small">Earned this cycle</div></div><div class="stat"><b>₹'+money(s.given)+'</b><div class="small">Given this cycle</div></div><div class="stat"><b>₹'+money(cc.openingBalance)+'</b><div class="small">Opening balance</div></div></div><div class="row" style="margin-top:11px"><button onclick="openNewCycle('+w.id+')">＋ Start new account cycle</button><button onclick="settleAccount('+w.id+')">✓ Settle account</button></div>';
- if(ptab==='overview')profileOverview(w,cc,s);if(ptab==='attendance')profileAttendance(w,cc);if(ptab==='payments')profilePayments(w,cc);if(ptab==='cycles')profileCycles(w);
+ const w=db.workers.find(x=>x.id===profileId);if(!w){show('workers');return}const c=currentCycle(w)||{start:w.createdAt||today(),opening:0},ms=monthStats(w),cs=cycleStats(w,c);
+ $('profileName').textContent=w.name;$('profileMeta').textContent='Daily wage '+rupee(w.dailyRate)+' • '+months[month]+' '+year;
+ $('profileDays').textContent=ms.worked+' days';$('profileDaysHint').textContent='This month • tap for attendance';
+ const monthMoney=db.payments.filter(p=>p.workerId===w.id&&p.date>=monthStart()&&p.date<=monthEnd()).reduce((a,p)=>a+p.amount,0);
+ $('profileMoney').textContent=rupee(monthMoney);$('profileMoneyHint').textContent='This month • tap for payments';
+ const b=cs.balance;$('profileBalance').textContent=rupee(Math.abs(b));$('profileDetail').innerHTML=profileView==='attendance'?profileAttendance(w):profileView==='money'?profileMoney(w):profileHisaab(w,c,cs)
 }
-function profileTab(t){ptab=t;['Overview','Attendance','Payments','Cycles'].forEach(x=>$('tab'+x).classList.toggle('on',t===x.toLowerCase()));renderProfile()}
-function profileOverview(w,c,s){const pays=data.payments.filter(p=>p.id===w.id&&p.date>=c.start).sort((a,b)=>b.date.localeCompare(a.date));$('profileContent').innerHTML='<div class="grid"><div class="stat"><b>'+s.present+'</b><div class="small">Present</div></div><div class="stat"><b>'+s.half+'</b><div class="small">Half days</div></div><div class="stat"><b>'+s.absent+'</b><div class="small">Absent</div></div><div class="stat"><b>₹'+money(w.dailyRate||w.rate)+'</b><div class="small">Daily wage</div></div></div><h3 style="margin-top:16px">Recent payments</h3>'+paymentRows(pays.slice(0,8),true)}
-function profileAttendance(w,c){const a=attendanceRange(w,c.start,todayISO());$('profileContent').innerHTML='<div class="chips" style="margin-bottom:12px"><span class="chip">🟢 '+a.present+' present</span><span class="chip">🟡 '+a.half+' half</span><span class="chip">🔴 '+a.absent+' absent</span><span class="chip">Worked: '+a.worked+'</span></div><div class="table-wrap"><table><tr><th>Date</th><th>Status</th><th>Earned</th></tr>'+attendanceRows(w,c.start)+'</table></div>'}
-function attendanceRows(w,start){let out='',s=parseDate(start),e=new Date();for(let x=new Date(e);x>=s;x.setDate(x.getDate()-1)){const date=iso(x.getFullYear(),x.getMonth(),x.getDate()),v=attStatus(w.id,date);if(!v)continue;const earn=v==='P'?Number(w.dailyRate||w.rate):v==='H'?Number(w.dailyRate||w.rate)/2:0;out+='<tr><td>'+fmtDate(date)+'</td><td>'+icon(v)+' '+(v==='P'?'Present':v==='H'?'Half day':'Absent')+'</td><td>₹'+money(earn)+'</td></tr>'}return out||'<tr><td colspan="3" class="muted">No attendance marked in this cycle.</td></tr>'}
-function profilePayments(w,c){const pays=data.payments.filter(p=>p.id===w.id&&p.date>=c.start).sort((a,b)=>b.date.localeCompare(a.date));$('profileContent').innerHTML='<div class="notice">Every payment is kept separately so you can see exactly where the money went.</div><div style="margin-top:10px">'+paymentRows(pays,false)+'</div>'}
-function paymentRows(pays,compact){if(!pays.length)return '<div class="empty">No payments in this account cycle.</div>';return '<table class="ledger">'+pays.map(p=>'<tr><td class="left"><b>'+fmtDate(p.date)+'</b><div class="small">'+esc(p.note||'Money given')+'</div></td><td class="amount plus">₹'+money(p.amount)+'</td><td style="text-align:right">'+(compact?'':'<button onclick="deletePayment('+p.pid+')">Delete</button>')+'</td></tr>').join('')+'</table>'}
-function profileCycles(w){const cs=data.cycles.filter(c=>c.workerId===w.id).sort((a,b)=>String(b.start).localeCompare(String(a.start)));$('profileContent').innerHTML=cs.map(c=>{const end=c.closedAt?c.end:todayISO(),a=attendanceRange(w,c.start,end),earned=a.worked*(w.dailyRate||w.rate),given=paymentTotal(w.id,c.start,end),bal=Number(c.openingBalance||0)+earned-given,b=labelBalance(bal);return '<div class="worker"><div class="row"><b class="grow">'+fmtDate(c.start)+' → '+(c.closedAt?fmtDate(c.end):'Ongoing')+'</b><span class="chip">'+(c.closedAt?'Closed':'Current')+'</span></div><div class="small" style="margin-top:6px">Opening ₹'+money(c.openingBalance)+' • Worked '+a.worked+' • Earned ₹'+money(earned)+' • Given ₹'+money(given)+'</div><div style="margin-top:6px"><b>'+(b.amount?'₹'+money(b.amount)+' '+b.text:b.text)+'</b></div></div>'}).join('')||'<div class="empty">No cycles.</div>'}
+function profileAttendance(w){let rows='';for(let d=daysIn(year,month);d>=1;d--){const date=iso(year,month,d),v=att(w.id,date);if(!v)continue;rows+='<tr><td>'+fmt(date)+'</td><td>'+(v==='P'?'🟢 Present':v==='H'?'🟡 Half day':'🔴 Absent')+'</td></tr>'}return '<div class="monthbar"><strong>'+months[month]+' '+year+' Attendance</strong></div><div class="table-wrap"><table class="table"><tr><th>Date</th><th>Status</th></tr>'+(rows||'<tr><td colspan="2">No attendance marked.</td></tr>')+'</table></div>'}
+function profileMoney(w){const rows=db.payments.filter(p=>p.workerId===w.id&&p.date>=monthStart()&&p.date<=monthEnd()).sort((a,b)=>b.date.localeCompare(a.date));let h='<div class="monthbar"><strong>'+months[month]+' '+year+' Money Given</strong></div><div class="table-wrap"><table class="table"><tr><th>Date</th><th>Amount</th><th></th></tr>';rows.forEach(p=>h+='<tr><td>'+fmt(p.date)+'</td><td>'+rupee(p.amount)+'</td><td><button onclick="deletePayment('+p.id+')">Delete</button></td></tr>');h+='</table></div><div class="total-line">Total: '+rupee(rows.reduce((a,p)=>a+p.amount,0))+'</div>';return h}
+function profileHisaab(w,c,s){const b=s.balance;return '<div class="statement"><div class="statement-row"><span>Total Days Worked</span><b>'+s.worked+'</b></div><div class="statement-row"><span>Daily Wage</span><b>'+rupee(w.dailyRate)+'</b></div><div class="statement-row"><span>Total Earned</span><b>'+rupee(s.earned)+'</b></div><div class="statement-row"><span>Money Given</span><b>'+rupee(s.given)+'</b></div><div class="statement-row"><span>Previous Balance</span><b>'+rupee(c.opening)+'</b></div><div class="statement-row total"><span>Current Balance</span><b>'+rupee(Math.abs(b))+'</b></div><div class="balance-box '+(b<0?'negative':'')+'"><div class="muted">'+(Math.abs(b)<.01?'ACCOUNT SETTLED':b>0?'YOU HAVE TO GIVE':'WORKER OWES YOU')+'</div><div class="amount">'+rupee(Math.abs(b))+'</div></div><div class="actions"><button class="black" onclick="openNewCycle('+w.id+')">Start New Hisaab</button></div></div>'}
+function renderMoney(){ $('moneyMonth').textContent=months[month]+' '+year;const rows=db.payments.filter(p=>p.date>=monthStart()&&p.date<=monthEnd()).sort((a,b)=>b.date.localeCompare(a.date));let h='<tr><th>Date</th><th>Worker</th><th>Amount</th><th></th></tr>';rows.forEach(p=>{const w=db.workers.find(x=>x.id===p.workerId);h+='<tr><td>'+fmt(p.date)+'</td><td>'+esc(w?.name||'Deleted worker')+'</td><td>'+rupee(p.amount)+'</td><td><button onclick="deletePayment('+p.id+')">Delete</button></td></tr>'});$('moneyTable').innerHTML=h;$('moneyTotal').innerHTML='<div class="total-line">Total: '+rupee(rows.reduce((a,p)=>a+p.amount,0))+'</div>'}
+function renderHistory(){const cs=db.cycles.slice().sort((a,b)=>String(b.start).localeCompare(String(a.start)));$('historyList').innerHTML=cs.map(c=>{const w=db.workers.find(x=>x.id===c.workerId);return '<div class="history-item"><b>'+esc(w?.name||'Deleted worker')+'</b><div class="muted">Hisaab started: '+fmt(c.start)+(c.closed?' • Closed: '+fmt(c.end):' • Current')+'</div></div>'}).join('')||'<div class="empty">No account history yet.</div>'}
+function openWorkerForm(id){
+ const w=id?db.workers.find(x=>x.id===id):null;
+ modal('<h3>'+(w?'Edit Worker':'Add Worker')+'</h3><div class="form"><div class="field full"><label>Worker name</label><input id="wName" value="'+esc(w?.name||'')+'"></div><div class="field"><label>Daily wage ₹</label><input id="wRate" type="number" value="'+(w?.dailyRate||'')+'"></div></div><div class="actions"><button onclick="closeModal()">Cancel</button><button class="black" onclick="saveWorker('+(id||0)+')">Save</button></div>')
+}
+function saveWorker(id){const name=$('wName').value.trim(),rate=Number($('wRate').value||0);if(!name)return alert('Enter worker name.');if(id){const w=db.workers.find(x=>x.id===id);w.name=name;w.dailyRate=rate}else{const wid=uid();db.workers.push({id:wid,name,dailyRate:rate,active:true,createdAt:today()});db.cycles.push({id:uid(),workerId:wid,start:today(),opening:0})}closeModal();persist()}
+function editWorker(id){openWorkerForm(id)}
+function toggleWorker(id){const w=db.workers.find(x=>x.id===id);w.active=!w.active;persist()}
+function deleteWorker(id){const w=db.workers.find(x=>x.id===id);if(!confirm('Are you sure you want to delete '+w.name+'?'))return;db.workers=db.workers.filter(x=>x.id!==id);db.payments=db.payments.filter(x=>x.workerId!==id);db.cycles=db.cycles.filter(x=>x.workerId!==id);Object.keys(db.attendance).forEach(k=>{if(k.startsWith(id+'|'))delete db.attendance[k]});persist();show('workers')}
 function openPayment(workerId){
- const id=workerId||data.workers.find(w=>w.active!==false)?.id||'';
- showModal('<h3>Give money</h3><div class="form-grid"><div class="field"><label>Worker</label><select id="payWorker">'+data.workers.filter(w=>w.active!==false).map(w=>'<option value="'+w.id+'" '+(String(w.id)===String(id)?'selected':'')+'>'+esc(w.name)+'</option>').join('')+'</select></div><div class="field"><label>Amount ₹</label><input id="payAmt" type="number" min="1" placeholder="1000"></div><div class="field"><label>Date</label><input id="payDate" type="date" value="'+todayISO()+'"></div><div class="field"><label>Type / description</label><select id="payNote"><option>Sunday payment</option><option>Advance</option><option>Weekly payment</option><option>Travel / expense</option><option>Food / expense</option><option>Account settlement</option><option>Other</option></select></div><div class="field full"><label>Extra note (optional)</label><input id="payExtra" placeholder="e.g. took ₹1000 for home"></div></div><div class="row" style="margin-top:14px"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="addPayment()">Save payment</button></div>');
+ const opts=activeWorkers().map(w=>'<option value="'+w.id+'" '+(w.id===workerId?'selected':'')+'>'+esc(w.name)+'</option>').join('');
+ modal('<h3>Give Money</h3><div class="form"><div class="field"><label>Worker</label><select id="pWorker">'+opts+'</select></div><div class="field"><label>Amount ₹</label><input id="pAmount" type="number" min="1"></div><div class="field full"><label>Date</label><input id="pDate" type="date" value="'+today()+'"></div></div><div class="actions"><button onclick="closeModal()">Cancel</button><button class="black" onclick="savePayment()">Save</button></div>')
 }
-function addPayment(){const id=Number($('payWorker').value),amount=Number($('payAmt').value),date=$('payDate').value,type=$('payNote').value,extra=$('payExtra').value.trim();if(!id||amount<=0||!date)return alert('Enter worker, amount and date.');data.payments.push({pid:uid(),id,amount,date,note:extra?type+' — '+extra:type});closeModal();save();if(pid===id)renderProfile()}
-function deletePayment(pid2){if(!confirm('Delete this payment?'))return;data.payments=data.payments.filter(p=>p.pid!==pid2);save()}
-function renderPays(){
- const start=iso(py,pm,1),end=iso(py,pm,daysIn(py,pm)),p=data.payments.filter(x=>x.date>=start&&x.date<=end).sort((a,b)=>b.date.localeCompare(a.date));
- const total=p.reduce((s,x)=>s+Number(x.amount||0),0);$('payMonthSummary').innerHTML='<div class="balance"><div class="small">Total money given in '+M[pm]+'</div><div class="amount">₹'+money(total)+'</div></div>';
- $('plist').innerHTML=paymentRows(p,false).replaceAll('<button onclick="deletePayment(','<button onclick="deletePayment(')||'<div class="empty">No payments this month.</div>';
- if(p.length)$('plist').innerHTML='<table class="ledger">'+p.map(x=>{const w=data.workers.find(y=>y.id===x.id);return '<tr><td class="left"><b>'+esc(w?.name||'Deleted worker')+'</b><div class="small">'+fmtDate(x.date)+' • '+esc(x.note||'Money given')+'</div></td><td class="amount">₹'+money(x.amount)+'</td><td><button onclick="deletePayment('+x.pid+')">Delete</button></td></tr>'}).join('')+'</table>';
- else $('plist').innerHTML='<div class="empty">No payments this month.</div>';
-}
+function savePayment(){const workerId=Number($('pWorker').value),amount=Number($('pAmount').value),date=$('pDate').value;if(!workerId||amount<=0||!date)return alert('Enter worker, amount and date.');db.payments.push({id:uid(),workerId,date,amount});closeModal();persist()}
+function deletePayment(id){if(!confirm('Delete this payment?'))return;db.payments=db.payments.filter(p=>p.id!==id);persist()}
 function openNewCycle(id){
- const w=data.workers.find(x=>x.id===id),c=cycleFor(w),s=cycleStats(w,c),b=labelBalance(s.balance);
- showModal('<h3>Start new account cycle</h3><div class="notice">The current balance will become the opening balance of the new cycle. Previous attendance and payments stay safely in Account cycles.</div><div class="field" style="margin-top:12px"><label>New cycle starts</label><input id="cycleDate" type="date" value="'+todayISO()+'"></div><div style="margin-top:12px"><b>Current closing balance: '+(b.amount?'₹'+money(b.amount)+' — '+b.text:'Settled')+'</b></div><div class="row" style="margin-top:14px"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="createCycle('+id+')">Start new cycle</button></div>');
+ const w=db.workers.find(x=>x.id===id),c=currentCycle(w),s=cycleStats(w,c),b=s.balance;
+ modal('<h3>Start New Hisaab</h3><p class="muted">The previous balance will carry into the new cycle. Old attendance and payments will stay in history.</p><div class="statement-row"><span>Current balance</span><b>'+rupee(Math.abs(b))+'</b></div><div class="field" style="margin-top:12px"><label>New cycle starts</label><input id="newStart" type="date" value="'+today()+'"></div><div class="actions"><button onclick="closeModal()">Cancel</button><button class="black" onclick="createCycle('+id+')">Start</button></div>')
 }
-function createCycle(id){
- const w=data.workers.find(x=>x.id===id),old=cycleFor(w),date=$('cycleDate').value;if(!w||!old||!date)return;
- if(date<=old.start)return alert('New cycle date must be after the current cycle start.');
- const end=new Date(parseDate(date));end.setDate(end.getDate()-1);const endDate=iso(end.getFullYear(),end.getMonth(),end.getDate());const s=cycleStats(w,old,endDate);
- old.end=endDate;old.closedAt=todayISO();old.closingBalance=s.balance;
- data.cycles.push({id:uid(),workerId:id,start:date,openingBalance:s.balance,createdAt:todayISO()});
- closeModal();save()
-}
-function settleAccount(id){
- const w=data.workers.find(x=>x.id===id),c=cycleFor(w);if(!w||!c)return;const s=cycleStats(w,c),b=labelBalance(s.balance);
- if(!b.amount)return alert('This account is already settled.');
- const amount=prompt((b.cls==='owe'?'You owe '+w.name:'Worker owes you')+' ₹'+money(b.amount)+'. Enter settlement amount:',money(b.amount).replaceAll(',',''));
- if(amount===null)return;const n=Number(String(amount).replace(/,/g,''));if(!Number.isFinite(n)||n<=0)return alert('Enter a valid amount.');
- if(b.cls==='owe')data.payments.push({pid:uid(),id,date:todayISO(),amount:n,note:'Account settlement'});else data.payments.push({pid:uid(),id,date:todayISO(),amount:-n,note:'Recovery / amount returned'});
- save()
-}
-function renderHist(){
- const ms=[...new Set(data.payments.map(x=>x.date.slice(0,7)))].sort().reverse();
- $('hlist').innerHTML=ms.map(x=>'<div class="worker"><b>📅 '+x+'</b><div class="small">'+data.payments.filter(p=>p.date.startsWith(x)).length+' payment entries • ₹'+money(data.payments.filter(p=>p.date.startsWith(x)).reduce((s,p)=>s+Number(p.amount||0),0))+'</div></div>').join('')||'<div class="empty">No payment history yet.</div>';
-}
-function backup(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='worker-hisaab-backup-'+todayISO()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function restore(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.workers||!x.payments)throw Error();data=x;data.attendance=data.attendance||data.a||{};data.payments=data.payments||data.p||[];data.cycles=data.cycles||[];data.workers.forEach(ensureCycle);save();alert('Backup restored successfully.')}catch(err){alert('This backup is not a valid Worker Hisaab backup.')}};r.readAsText(file)};i.click()}
-function resetLocalBackup(){localStorage.setItem(STORE+'_safety_'+Date.now(),JSON.stringify(data));alert('A safety copy was created in this browser.')}
-function exportCSV(){const rows=[['Date','Worker','Amount','Description']];data.payments.forEach(p=>rows.push([p.date,data.workers.find(w=>w.id===p.id)?.name||'Deleted worker',p.amount,p.note||'']));const csv=rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='worker-payments.csv';a.click()}
-function showModal(html){$('modalBox').innerHTML=html;$('modal').classList.add('on')}
-function closeModal(){$('modal').classList.remove('on')}
-$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()})
-function fmtDate(s){if(!s)return'—';const d=parseDate(s);return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
-function esc(s){return String(s??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
-function escAttr(s){return esc(s).replaceAll('"','&quot;')}
-load();render();
+function createCycle(id){const w=db.workers.find(x=>x.id===id),c=currentCycle(w),date=$('newStart').value;if(!date||date<=c.start)return alert('Choose a date after the current cycle start.');const end=new Date(date+'T00:00:00');end.setDate(end.getDate()-1);c.closed=true;c.end=iso(end.getFullYear(),end.getMonth(),end.getDate());const s=cycleStatsUntil(w,c,c.end);c.closing=s.balance;db.cycles.push({id:uid(),workerId:id,start:date,opening:s.balance});closeModal();persist()}
+function cycleStatsUntil(w,c,end){const s=new Date(c.start+'T00:00:00'),e=new Date(end+'T00:00:00');let worked=0;for(let x=new Date(s);x<=e;x.setDate(x.getDate()+1)){const v=att(w.id,iso(x.getFullYear(),x.getMonth(),x.getDate()));if(v==='P')worked++;else if(v==='H')worked+=.5}const given=db.payments.filter(p=>p.workerId===w.id&&p.date>=c.start&&p.date<=end).reduce((a,p)=>a+p.amount,0);return{balance:Number(c.opening||0)+worked*w.dailyRate-given}}
+function openSave(){show('save')}
+function downloadBackup(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='worker-hisaab-backup-'+today()+'.json';a.click()}
+function restoreBackup(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0],r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.workers||!x.attendance||!x.payments)throw 0;db=x;persist();alert('Backup restored.')}catch(err){alert('Invalid backup file.')}};r.readAsText(f)};i.click()}
+function modal(html){$('modalBox').innerHTML=html;$('modal').style.display='flex'}
+function closeModal(){$('modal').style.display='none'}
+$('modal').onclick=e=>{if(e.target.id==='modal')closeModal()}
+load();initSelectors();renderAll();
 </script>
 </body>
 </html>
