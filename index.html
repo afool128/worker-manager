@@ -145,7 +145,7 @@ function renderAttendance(){
 }
 function renderWorkers(){
  const list=$('workersList');if(!db.workers.length){list.innerHTML='<div class="empty">No workers added yet.</div>';return}
- list.innerHTML=db.workers.map(w=>'<div class="worker-row"><div class="grow"><div class="worker-name">'+esc(w.name)+(w.active===false?' <span class="muted">(inactive)</span>':'')+'</div><div class="muted">Daily wage: '+rupee(w.dailyRate)+'</div></div><button onclick="openProfile('+w.id+')">Profile</button><button onclick="editWorker('+w.id+')">Edit</button><button onclick="toggleWorker('+w.id+')">'+(w.active===false?'Activate':'Deactivate')+'</button><button class="danger" onclick="deleteWorker('+w.id+')">Delete</button></div>').join('')
+ list.innerHTML=db.workers.map(w=>'<div class="worker-row"><div class="grow"><div class="worker-name">'+esc(w.name)+(w.active===false?' <span class="muted">(inactive)</span>':'')+'</div><div class="muted">'+(w.payBasis==='monthly'?'Monthly salary: '+rupee(w.monthlySalary):'Daily wage: '+rupee(w.dailyRate))+'</div></div><button onclick="openProfile('+w.id+')">Profile</button><button onclick="editWorker('+w.id+')">Edit</button><button onclick="toggleWorker('+w.id+')">'+(w.active===false?'Activate':'Deactivate')+'</button><button class="danger" onclick="deleteWorker('+w.id+')">Delete</button></div>').join('')
 }
 function openProfile(id){profileId=id;profileView='hisaab';show('profile')}
 function renderProfile(){
@@ -222,7 +222,7 @@ function restoreBackup(){const i=document.createElement('input');i.type='file';i
 function modal(html){$('modalBox').innerHTML=html;$('modal').style.display='flex'}
 function closeModal(){$('modal').style.display='none'}
 $('modal').onclick=e=>{if(e.target.id==='modal')closeModal()}
-load();initSelectors();renderAll();
+load();initSelectors();renderAll();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
 </body>
 </html>
