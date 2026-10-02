@@ -132,7 +132,7 @@ function earnedBetween(w,start,end){
 }
 function daysWorkedBetween(w,start,end){let worked=0,s=new Date(start+'T00:00:00'),e=new Date(end+'T00:00:00');for(let x=new Date(s);x<=e;x.setDate(x.getDate()+1)){const v=att(w.id,iso(x.getFullYear(),x.getMonth(),x.getDate()));if(v==='P')worked++;else if(v==='H')worked+=.5}return worked}
 function cycleStats(w,c){
- const end=today(),worked=daysWorkedBetween(w,c.start,end),given=db.payments.filter(p=>p.workerId===w.id&&((p.cycleId&&p.cycleId===c.id)||(!p.cycleId&&p.date>=c.start)).reduce((a,p)=>a+Number(p.amount||0),0),earned=earnedBetween(w,c.start,end);return{worked,earned,given,balance:Number(c.opening||0)+earned-given}
+ const end=today(),worked=daysWorkedBetween(w,c.start,end),given=db.payments.filter(p=>p.workerId===w.id&&((p.cycleId&&p.cycleId===c.id)||(!p.cycleId&&p.date>=c.start))).reduce((a,p)=>a+Number(p.amount||0),0),earned=earnedBetween(w,c.start,end);return{worked,earned,given,balance:Number(c.opening||0)+earned-given}
 }
 function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));$(id).classList.add('on');if(id==='attendance')renderAttendance();if(id==='workers')renderWorkers();if(id==='money')renderMoney();if(id==='save')renderHistory();if(id==='profile')renderProfile()}
 function changeMonth(n){month+=n;if(month<0){month=11;year--}if(month>11){month=0;year++}$('month').value=month;$('year').value=year;renderAll()}
@@ -182,7 +182,7 @@ function openWorkerForm(id){
 }
 function togglePayFields(){const b=$('wBasis')?.value;if($('wRateField'))$('wRateField').style.display=b==='monthly'?'none':'block';if($('wSalary'))$('wSalary').parentElement.style.display=b==='monthly'?'block':'none'}
 function saveWorker(id){
- const name=$('wName').value.trim(),rate=Number($('wRate').value||0),salary=Number($('wSalary')?.value||0),basis=$('wBasis')?.value||'daily',join=$('wJoin').value||today();
+ const name=$('wName').value.trim(),rate=Number($('wRate').value||0),salary=Number($('wSalary')?.value||0),basis=$('wBasis')?.value||'work',join=$('wJoin').value||today();
  if(!name)return alert('Enter worker name.');
  if(id){
    const w=db.workers.find(x=>x.id===id),oldJoin=w.joinDate||w.createdAt||today();
